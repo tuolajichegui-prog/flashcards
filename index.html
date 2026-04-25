@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaiti Flashcards Pro</title>
+    <title>KaiTi Flashcards</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 
@@ -16,15 +16,14 @@
         }
 
         body { 
-            /* Priority: Windows Kaiti -> iOS Kaiti -> Google Brush Font -> Serif */
-            font-family: "KaiTi", "楷体", "STKaiti", "华文楷体", "Kaiti SC", "Ma Shan Zheng", serif; 
+            /* Priority 1: Google Calligraphy, Priority 2: System Kaiti */
+            font-family: 'Ma Shan Zheng', "KaiTi", "楷体", "STKaiti", serif; 
             text-align: center; 
             background: var(--bg); 
             margin: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            color: #333;
             overflow: hidden;
         }
 
@@ -34,10 +33,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
         }
-
-        h2 { margin: 10px 0; font-size: 1.4rem; font-family: sans-serif; }
 
         textarea { 
             width: 100%; 
@@ -48,13 +44,11 @@
             border-radius: 12px; 
             border: 2px solid #ccc;
             box-sizing: border-box;
-            background: white;
         }
 
         .setup-controls {
             margin: 20px 0;
             font-family: sans-serif;
-            font-weight: bold;
         }
 
         .btn-start { 
@@ -65,7 +59,6 @@
             background: var(--primary); 
             color: white; 
             font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             touch-action: manipulation;
         }
 
@@ -90,31 +83,26 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        #score { font-weight: bold; color: #444; font-size: 18px; }
-
         .voice-control {
             display: flex;
             align-items: center;
             gap: 8px;
-            cursor: pointer;
             background: #eee;
             padding: 8px 15px;
             border-radius: 25px;
         }
 
-        .voice-control input {
-            width: 25px;
-            height: 25px;
-        }
+        .voice-control input { width: 25px; height: 25px; }
 
-        /* The main character display */
+        /* The Main Kaiti Display */
         #card { 
-            font-size: 30vw; 
+            font-size: 32vw; /* Very large for clarity */
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: inherit; /* Inherits the Kaiti font stack */
+            font-family: 'Ma Shan Zheng', "KaiTi", "楷体", "STKaiti", serif;
+            color: #000;
         }
 
         #controls {
@@ -136,22 +124,19 @@
             border-radius: 10px;
             border: none;
             margin-top: 10px;
-            font-weight: bold;
             font-family: sans-serif;
         }
-
     </style>
 </head>
 <body>
 
 <div id="setup">
-    <h2>Flashcard Editor</h2>
-    <textarea id="inputText" placeholder="Enter words (one per line)..."></textarea>
+    <h2 style="font-family: sans-serif;">Flashcard Editor</h2>
+    <textarea id="inputText" placeholder="Enter words here..."></textarea>
     
     <div class="setup-controls">
-        <label style="cursor: pointer; font-size: 20px;">
-            <input type="checkbox" id="shuffleToggle" style="width: 24px; height: 24px; vertical-align: middle;"> 
-            <span style="vertical-align: middle; margin-left: 8px;">Shuffle Cards</span>
+        <label style="font-size: 20px;">
+            <input type="checkbox" id="shuffleToggle" style="width: 20px; height: 20px;"> Shuffle Cards
         </label>
     </div>
     
@@ -160,10 +145,9 @@
 
 <div id="quiz">
     <div id="quiz-header">
-        <div id="score">0 / 0</div>
-        
+        <div id="score" style="font-weight:bold">0 / 0</div>
         <label class="voice-control">
-            <span style="font-size: 18px; font-weight: bold;">🔊 Voice</span>
+            <span style="font-weight: bold;">🔊 Voice</span>
             <input type="checkbox" id="soundToggle" checked>
         </label>
     </div>
@@ -173,7 +157,7 @@
     <div id="controls">
         <button id="incorrectBtn" class="btn-incorrect" onclick="answer(false)">❌</button>
         <button id="correctBtn" class="btn-correct" onclick="answer(true)">✅</button>
-        <button class="btn-stop" onclick="stopQuiz()">⏹ EXIT QUIZ</button>
+        <button class="btn-stop" onclick="stopQuiz()">⏹ EXIT</button>
     </div>
 </div>
 
@@ -183,22 +167,18 @@
     let correct = 0;
     let incorrect = 0;
 
-    // Standard flip sound effect
     const flipSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
 
-    // Load saved text from browser storage
     window.onload = () => {
         const saved = localStorage.getItem("cards_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
-    // Auto-save while typing
     document.getElementById("inputText").addEventListener("input", (e) => {
         localStorage.setItem("cards_save", e.target.value);
     });
 
     function speak(text, callback) {
-        // If voice toggle is off, skip speech
         if (!document.getElementById("soundToggle").checked) {
             if (callback) callback();
             return;
@@ -214,10 +194,7 @@
         const raw = document.getElementById("inputText").value;
         cards = raw.split("\n").filter(line => line.trim() !== "");
         if (cards.length === 0) return;
-        
-        if (document.getElementById("shuffleToggle").checked) {
-            cards.sort(() => Math.random() - 0.5);
-        }
+        if (document.getElementById("shuffleToggle").checked) cards.sort(() => Math.random() - 0.5);
 
         currentIndex = 0; correct = 0; incorrect = 0;
         document.getElementById("setup").style.display = "none";
@@ -227,18 +204,14 @@
 
     function showCard() {
         if (currentIndex >= cards.length) {
-            alert(`Result: ✅ ${correct} | ❌ ${incorrect}`);
+            alert(`✅ ${correct} | ❌ ${incorrect}`);
             stopQuiz();
             return;
         }
-
-        // Play flip sound and update UI
         flipSound.currentTime = 0;
         flipSound.play();
-
         document.getElementById("card").innerText = cards[currentIndex];
-        document.getElementById("score").innerText = `Card ${currentIndex + 1}/${cards.length} | ✅ ${correct} ❌ ${incorrect}`;
-        
+        document.getElementById("score").innerText = `${currentIndex + 1}/${cards.length}`;
         document.getElementById("correctBtn").disabled = false;
         document.getElementById("incorrectBtn").disabled = false;
     }
@@ -246,10 +219,7 @@
     function answer(isCorrect) {
         document.getElementById("correctBtn").disabled = true;
         document.getElementById("incorrectBtn").disabled = true;
-        
         if (isCorrect) correct++; else incorrect++;
-
-        // Steps: Hear current word -> Move to next
         speak(cards[currentIndex], () => {
             currentIndex++;
             showCard();
