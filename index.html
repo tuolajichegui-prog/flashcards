@@ -2,122 +2,97 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compact Scroll Flashcards</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slower Paced Flashcards</title>
     <style>
-        /* Natural scroll for phone, centered for PC */
         html, body {
             overflow-y: auto;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: #f7f7f7;
             font-family: "KaiTi", "楷体", "STKaiti", system-ui, sans-serif;
             text-align: center;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #app-container {
-            max-width: 400px; /* Slimmer PC width */
+            max-width: 400px; 
             margin: 0 auto;
-            background: #fff;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
         }
 
-        /* --- SETUP --- */
-        #setup {
-            padding: 20px;
-            display: block;
-        }
-
+        /* --- SETUP (LOCKED TEXTBOX) --- */
+        #setup { padding: 20px; display: flex; flex-direction: column; }
+        
         textarea {
             width: 100%;
-            height: 250px; /* Fixed smaller height */
+            height: 300px;
             font-size: 16px;
             font-family: inherit;
             padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
             box-sizing: border-box;
             margin-bottom: 15px;
-            resize: none; /* DISABLED RESIZING */
-            display: block;
+            resize: none !important; 
+            overflow-y: auto;
+            outline: none;
         }
 
         .btn-start {
             width: 100%;
-            padding: 15px;
+            padding: 18px;
             font-size: 20px;
-            background: #222;
+            background: #111;
             color: #fff;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: bold;
             cursor: pointer;
+            user-select: none;
         }
 
         /* --- QUIZ --- */
-        #quiz {
-            display: none; 
-            padding: 15px;
-            flex-direction: column;
-        }
-
+        #quiz { display: none; padding: 15px; flex-direction: column; }
+        
         #header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            position: sticky;
-            top: 0;
-            background: #fff;
-            border-bottom: 1px solid #eee;
-            z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid #eee; margin-bottom: 10px;
+            user-select: none;
         }
 
-        /* Compact Card Area */
         #card-box {
-            padding: 40px 15px;
-            margin: 15px 0;
+            padding: 50px 15px;
             background: #fafafa;
             border-radius: 15px;
             border: 1px solid #eee;
-            min-height: 200px;
+            min-height: 220px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 20px;
         }
 
-        #card {
-            font-size: 70px;
-            line-height: 1.3;
-            word-wrap: break-word;
-            width: 100%;
-            font-family: inherit;
+        #card { 
+            font-size: 80px; line-height: 1.3; word-wrap: break-word; width: 100%; font-family: inherit; 
         }
 
-        /* BUTTONS AT BOTTOM */
-        #controls {
-            padding: 10px 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; user-select: none; }
 
         .btn-action {
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 30px;
-            border: none;
-            color: white;
-            cursor: pointer;
+            padding: 22px; border-radius: 15px; font-size: 32px; border: none; color: white;
+            cursor: pointer; transition: transform 0.1s;
         }
+        .btn-action:active { transform: scale(0.95); }
 
-        .yes { background: #2ecc71; }
+        .yes { background: #27ae60; }
         .no { background: #e74c3c; }
 
-        .btn-exit { background: #95a5a6; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+        .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
         .voice-box { display: flex; align-items: center; gap: 5px; font-weight: bold; font-family: sans-serif; font-size: 14px; }
     </style>
 </head>
@@ -125,10 +100,10 @@
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif; margin-top: 5px;">Editor</h3>
-        <textarea id="inputText" placeholder="Paste your words..."></textarea>
-        <div style="margin-bottom: 15px; font-family: sans-serif;">
-            <label><input type="checkbox" id="shuffle"> Shuffle</label>
+        <h3 style="font-family: sans-serif; margin-bottom: 15px;">Card Editor</h3>
+        <textarea id="inputText" placeholder="Enter cards..."></textarea>
+        <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
+            <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
         <button class="btn-start" onclick="go()">START</button>
     </div>
@@ -136,17 +111,13 @@
     <div id="quiz">
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
-            <label class="voice-box">
+            <label class="voice-box" style="cursor: pointer;">
                 <span>🔊 Voice</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
-
-        <div id="card-box">
-            <div id="card"></div>
-        </div>
-
+        <div id="card-box"><div id="card"></div></div>
         <div id="controls">
             <button class="btn-action no" onclick="ans(false)">❌</button>
             <button class="btn-action yes" onclick="ans(true)">✅</button>
@@ -160,21 +131,16 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const saved = localStorage.getItem("compact_natural_save");
+        const saved = localStorage.getItem("slower_kaiti_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("compact_natural_save", text);
-        
+        localStorage.setItem("slower_kaiti_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
-
-        if (document.getElementById("shuffle").checked) {
-            list.sort(() => Math.random() - 0.5);
-        }
-
+        if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
         idx = 0; ok = 0; no = 0;
         document.getElementById("setup").style.display = "none";
         document.getElementById("quiz").style.display = "flex";
@@ -183,46 +149,65 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`✅ ${ok} Correct\n❌ ${no} Incorrect`);
+            alert(`✅ ${ok} Correct | ❌ ${no} Wrong`);
             stop();
             return;
         }
-        
         const currentText = list[idx];
         const cardDisplay = document.getElementById("card");
-        
         cardDisplay.innerText = currentText;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
-
-        // Auto-scale font based on length
-        if (currentText.length > 8) cardDisplay.style.fontSize = "32px";
-        else if (currentText.length > 4) cardDisplay.style.fontSize = "50px";
-        else cardDisplay.style.fontSize = "80px";
-
+        cardDisplay.style.fontSize = currentText.length > 8 ? "30px" : (currentText.length > 4 ? "45px" : "80px");
         window.scrollTo(0, 0);
+    }
+
+    // New Slower Paced Reading Logic
+    async function speakSlowly(text) {
+        if (!document.getElementById("sound").checked) return;
+        speechSynthesis.cancel();
+
+        // Split into individual characters
+        const chars = Array.from(text);
+        
+        for (let char of chars) {
+            // Skip speaking if we've already clicked to the next card or exited
+            if (list[idx] !== text) break;
+
+            const msg = new SpeechSynthesisUtterance(char);
+            msg.lang = 'zh-CN';
+            msg.rate = 0.7; // Slower speed (1.0 is normal)
+            
+            // Wrap in a promise to wait for the character to finish
+            await new Promise(resolve => {
+                msg.onend = resolve;
+                speechSynthesis.speak(msg);
+            });
+
+            // Brief pause after the character (300ms)
+            await new Promise(r => setTimeout(r, 300));
+        }
+        
+        // Move to next card after sequence is done
+        idx++; 
+        show();
     }
 
     function ans(correct) {
         if (correct) ok++; else no++;
-        
         if (document.getElementById("sound").checked) {
-            speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(list[idx]);
-            msg.lang = 'zh-CN';
-            msg.onend = () => { idx++; show(); };
-            speechSynthesis.speak(msg);
+            speakSlowly(list[idx]);
         } else {
-            idx++; show();
+            idx++; 
+            show();
         }
     }
 
     function stop() {
         speechSynthesis.cancel();
-        document.getElementById("setup").style.display = "block";
+        document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
         window.scrollTo(0, 0);
     }
 </script>
-
 </body>
 </html>
