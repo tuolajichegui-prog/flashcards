@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Audio Flashcards</title>
+    <title>Precision Paced Flashcards</title>
     <style>
         html, body {
             overflow-y: auto; margin: 0; padding: 0;
@@ -43,23 +43,28 @@
 
         #card-box {
             padding: 30px 15px; background: #fafafa; border-radius: 15px;
-            border: 1px solid #eee; min-height: 200px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            border: 1px solid #eee; min-height: 180px;
+            display: flex; align-items: center; justify-content: center; 
             margin-bottom: 20px;
         }
 
-        #card { font-size: 80px; line-height: 1.2; word-wrap: break-word; width: 100%; font-family: inherit; margin-bottom: 20px; }
+        #card { font-size: 80px; line-height: 1.2; word-wrap: break-word; width: 100%; font-family: inherit; }
 
-        .btn-listen {
-            background: #f0f0f0; border: 1px solid #ddd; padding: 10px 20px;
-            border-radius: 50px; font-size: 24px; cursor: pointer; width: fit-content;
-        }
+        #controls { display: flex; flex-direction: column; gap: 15px; }
 
-        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .answer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         .btn-action { padding: 22px; border-radius: 15px; font-size: 32px; border: none; color: white; cursor: pointer; }
         .yes { background: #27ae60; }
         .no { background: #e74c3c; }
+
+        .btn-listen {
+            width: 100%; padding: 20px; font-size: 24px; font-weight: bold;
+            background: #f0f0f0; border: 1px solid #ccc; border-radius: 15px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            -webkit-user-select: none;
+        }
+
         .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
         .score-box { font-weight: bold; font-family: sans-serif; font-size: 16px; }
     </style>
@@ -68,7 +73,7 @@
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Smart Listen Mode</h3>
+        <h3 style="font-family: sans-serif;">Paced Audio Mode</h3>
         <textarea id="inputText" placeholder="Paste your text here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
@@ -83,11 +88,13 @@
         </div>
         <div id="card-box">
             <div id="card"></div>
-            <button class="btn-listen" onclick="listenNow()">🔊 Listen</button>
         </div>
         <div id="controls">
-            <button class="btn-action no" onclick="ans(false)">❌</button>
-            <button class="btn-action yes" onclick="ans(true)">✅</button>
+            <div class="answer-row">
+                <button class="btn-action no" onclick="ans(false)">❌</button>
+                <button class="btn-action yes" onclick="ans(true)">✅</button>
+            </div>
+            <button class="btn-listen" onclick="listenNow()">🔊 LISTEN</button>
         </div>
     </div>
 </div>
@@ -99,14 +106,14 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("smart_listen_save");
+        const saved = localStorage.getItem("precision_audio_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
-        resetSpeech();
+        stopSpeech();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("smart_listen_save", text);
+        localStorage.setItem("precision_audio_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -118,7 +125,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Session Finished!\n✅ Correct: ${ok}\n❌ Wrong: ${no}`);
+            alert(`Finished!\n✅ Correct: ${ok}\n❌ Wrong: ${no}`);
             stop();
             return;
         }
@@ -130,7 +137,6 @@
         if (currentText.length > 10) cardDisplay.style.fontSize = "26px";
         else if (currentText.length > 4) cardDisplay.style.fontSize = "45px";
         else cardDisplay.style.fontSize = "80px";
-        window.scrollTo(0, 0);
     }
 
     async function listenNow() {
@@ -140,14 +146,14 @@
         speechSynthesis.cancel();
 
         if (text.length <= 4) {
-            // Natural mode for short words
+            // Short: Normal speed (e.g. 哥哥)
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-CN';
             msg.rate = 1.0;
             msg.onend = () => { isSpeaking = false; };
             speechSynthesis.speak(msg);
         } else {
-            // Paced mode for long sentences (0.07s delay)
+            // Long: Character-by-character with the 0.05s delay
             const chars = Array.from(text);
             for (let char of chars) {
                 if (!isSpeaking) break;
@@ -158,26 +164,26 @@
                     msg.onend = resolve;
                     speechSynthesis.speak(msg);
                 });
-                await new Promise(r => setTimeout(r, 70));
+                await new Promise(r => setTimeout(r, 50)); // 0.05s delay
             }
             isSpeaking = false;
         }
     }
 
     function ans(correct) {
-        resetSpeech(); // Kill audio immediately when answering
+        stopSpeech();
         if (correct) ok++; else no++;
         idx++;
         show();
     }
 
-    function resetSpeech() {
+    function stopSpeech() {
         isSpeaking = false;
         speechSynthesis.cancel();
     }
 
     function stop() {
-        resetSpeech();
+        stopSpeech();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
     }
