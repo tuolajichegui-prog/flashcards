@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>True KaiTi Flashcards</title>
+    <title>Clean Kaiti Cards</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
+
     <style>
         body { 
-            /* This stack forces the standard PC/Mac/iOS KaiTi. No curly fonts included. */
-            font-family: "KaiTi", "楷体", "STKaiti", "Kaiti SC", "Kaiti TC", serif; 
+            /* Priority: Standard System Kaiti -> Noto Serif SC (Textbook style) */
+            font-family: "KaiTi", "楷体", "STKaiti", "Noto Serif SC", serif; 
             text-align: center; 
             margin: 0;
             background-color: #ffffff;
@@ -20,35 +23,36 @@
         /* --- SETUP PAGE --- */
         #setup { padding: 20px; flex: 1; display: flex; flex-direction: column; }
         textarea { 
-            width: 100%; height: 50vh; font-size: 20px; font-family: inherit; 
-            padding: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;
+            width: 100%; height: 45vh; font-size: 20px; font-family: inherit; 
+            padding: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box;
         }
         .btn-start { 
-            margin-top: 20px; padding: 18px; font-size: 22px; border-radius: 12px; 
-            border: none; background-color: #333; color: white; font-weight: bold;
+            margin-top: 20px; padding: 20px; font-size: 22px; border-radius: 15px; 
+            border: none; background-color: #000; color: white; font-weight: bold;
         }
 
         /* --- QUIZ PAGE --- */
         #quiz { display: none; flex-direction: column; height: 100vh; padding: 15px; }
-        #header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-family: sans-serif; }
+        #header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
         #card { 
-            font-size: 45vw; /* Maximum size */
+            font-size: 45vw; 
             flex: 1; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-family: inherit; /* Uses the KaiTi stack from body */
-            font-weight: normal; 
+            /* Forces the clean textbook look */
+            font-family: "KaiTi", "楷体", "STKaiti", "Noto Serif SC", serif;
+            font-weight: 700; 
         }
 
-        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .btn-y { background-color: #2ecc71; padding: 20px; font-size: 35px; border-radius: 15px; color: white; border: none; }
         .btn-n { background-color: #e74c3c; padding: 20px; font-size: 35px; border-radius: 15px; color: white; border: none; }
-        .btn-s { background-color: #95a5a6; grid-column: span 2; padding: 10px; color: white; border: none; border-radius: 8px; margin-top: 10px; }
+        .btn-s { background-color: #95a5a6; grid-column: span 2; padding: 10px; color: white; border: none; border-radius: 8px; font-family: sans-serif; }
 
-        .voice-box { display: flex; align-items: center; gap: 8px; font-weight: bold; }
-        .voice-box input { width: 22px; height: 22px; }
+        .voice-box { display: flex; align-items: center; gap: 8px; font-weight: bold; font-family: sans-serif; }
+        .voice-box input { width: 24px; height: 24px; }
     </style>
 </head>
 <body>
@@ -64,7 +68,7 @@
 
 <div id="quiz">
     <div id="header">
-        <div id="score" style="font-size: 20px;">0 / 0</div>
+        <div id="score" style="font-size: 20px; font-family: sans-serif; font-weight: bold;">0 / 0</div>
         <label class="voice-box">
             <span>🔊 Voice</span>
             <input type="checkbox" id="sound" checked>
@@ -104,7 +108,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`✅ ${ok}  ❌ ${no}`);
+            alert(`Done!\n✅ ${ok} Correct\n❌ ${no} Incorrect`);
             stop();
             return;
         }
