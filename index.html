@@ -94,7 +94,7 @@
 <div id="app-container">
     <div id="setup">
         <h3 style="font-family: sans-serif;">Card Editor</h3>
-        <textarea id="inputText" placeholder="Enter words or sentences..."></textarea>
+        <textarea id="inputText" placeholder="Paste your words or sentences here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -105,7 +105,7 @@
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
-                <span>🔊 Voice</span>
+                <span>🔊 Real Speed</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
@@ -124,13 +124,13 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const saved = localStorage.getItem("natural_speed_save");
+        const saved = localStorage.getItem("fast_guy_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("natural_speed_save", text);
+        localStorage.setItem("fast_guy_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -142,7 +142,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`✅ ${ok} Correct | ❌ ${no} Wrong`);
+            alert(`Done!\n✅ ${ok} Correct | ❌ ${no} Wrong`);
             stop();
             return;
         }
@@ -151,16 +151,15 @@
         cardDisplay.innerText = currentText;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
         
-        // Auto-sizing text
-        if (currentText.length > 15) cardDisplay.style.fontSize = "24px";
-        else if (currentText.length > 8) cardDisplay.style.fontSize = "35px";
-        else if (currentText.length > 4) cardDisplay.style.fontSize = "55px";
-        else cardDisplay.style.fontSize = "85px";
+        if (currentText.length > 15) cardDisplay.style.fontSize = "22px";
+        else if (currentText.length > 8) cardDisplay.style.fontSize = "32px";
+        else if (currentText.length > 4) cardDisplay.style.fontSize = "50px";
+        else cardDisplay.style.fontSize = "80px";
 
         window.scrollTo(0, 0);
     }
 
-    function speakNormally(text) {
+    function speak(text) {
         if (!document.getElementById("sound").checked) {
             idx++; show();
             return;
@@ -170,10 +169,8 @@
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-CN';
         
-        // --- THE SPEED FIX ---
-        // 0.9 is just slightly slower than normal, 
-        // perfect for understanding sentences without waiting forever.
-        msg.rate = 0.9; 
+        // --- NATURAL SPEED (1.1 - 1.2 is typical human speed) ---
+        msg.rate = 1.1; 
         
         msg.onend = () => {
             idx++; 
@@ -185,7 +182,7 @@
 
     function ans(correct) {
         if (correct) ok++; else no++;
-        speakNormally(list[idx]);
+        speak(list[idx]);
     }
 
     function stop() {
