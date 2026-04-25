@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Natural Flow Flashcards</title>
+    <title>Smart Paced Flashcards</title>
     <style>
         html, body {
             overflow-y: auto; margin: 0; padding: 0;
@@ -73,8 +73,8 @@
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Natural Audio Mode</h3>
-        <textarea id="inputText" placeholder="Paste words or sentences..."></textarea>
+        <h3 style="font-family: sans-serif;">Paced Editor</h3>
+        <textarea id="inputText" placeholder="Enter cards here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -101,16 +101,17 @@
     let list = [];
     let idx = 0;
     let ok = 0, no = 0;
+    let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("natural_flow_save");
+        const saved = localStorage.getItem("smart_paced_v4");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
-        speechSynthesis.cancel();
+        resetSpeech();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("natural_flow_save", text);
+        localStorage.setItem("smart_paced_v4", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -122,7 +123,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Done!\n✅ ${ok} Correct | ❌ ${no} Wrong`);
+            alert(`Finished!\n✅ ${ok} Correct | ❌ ${no} Wrong`);
             stop();
             return;
         }
@@ -136,23 +137,51 @@
         else cardDisplay.style.fontSize = "80px";
     }
 
-    function listenNow() {
+    async function listenNow() {
+        if (isSpeaking) return;
+        const text = list[idx];
+        isSpeaking = true;
         speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(list[idx]);
-        msg.lang = 'zh-CN';
-        msg.rate = 1.0; // Standard natural speed
-        speechSynthesis.speak(msg);
+
+        if (text.length <= 4) {
+            // Natural for short words
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-CN';
+            msg.rate = 1.0;
+            msg.onend = () => { isSpeaking = false; };
+            speechSynthesis.speak(msg);
+        } else {
+            // 0.010s delay for long text
+            const chars = Array.from(text);
+            for (let char of chars) {
+                if (!isSpeaking) break;
+                const msg = new SpeechSynthesisUtterance(char);
+                msg.lang = 'zh-CN';
+                msg.rate = 1.0;
+                await new Promise(resolve => {
+                    msg.onend = resolve;
+                    speechSynthesis.speak(msg);
+                });
+                await new Promise(r => setTimeout(r, 10)); // 0.01s gap
+            }
+            isSpeaking = false;
+        }
     }
 
     function ans(correct) {
-        speechSynthesis.cancel(); 
+        resetSpeech();
         if (correct) ok++; else no++;
         idx++;
         show();
     }
 
-    function stop() {
+    function resetSpeech() {
+        isSpeaking = false;
         speechSynthesis.cancel();
+    }
+
+    function stop() {
+        resetSpeech();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
     }
