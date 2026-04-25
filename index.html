@@ -3,90 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hybrid Kaiti App</title>
+    <title>Hybrid Flashcards</title>
     <style>
         body { 
-            /* This stack looks for PC Kaiti first. If not found (on a phone), it uses the system default sans-serif. */
-            font-family: "KaiTi", "楷体", "STKaiti", system-ui, -apple-system, sans-serif; 
+            font-family: "KaiTi", "楷体", "STKaiti", system-ui, sans-serif; 
             text-align: center; 
             margin: 0;
-            background-color: #ffffff;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        /* Container to make PC look better (centered box) */
+        #app-container {
+            width: 100%;
+            max-width: 500px; /* Limits width on PC */
+            background: #ffffff;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            color: #000;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
 
-        /* --- SETUP PAGE --- */
+        /* --- SETUP --- */
         #setup { padding: 20px; flex: 1; display: flex; flex-direction: column; }
         textarea { 
-            width: 100%; height: 45vh; font-size: 20px; font-family: inherit; 
+            width: 100%; flex: 1; font-size: 18px; font-family: inherit; 
             padding: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box;
+            resize: none;
         }
         .btn-start { 
-            margin-top: 20px; padding: 20px; font-size: 22px; border-radius: 15px; 
-            border: none; background-color: #000; color: white; font-weight: bold;
+            margin: 20px 0; padding: 18px; font-size: 20px; border-radius: 12px; 
+            border: none; background-color: #007AFF; color: white; font-weight: bold;
         }
 
-        /* --- QUIZ PAGE (BUTTONS AT TOP) --- */
-        #quiz { display: none; height: 100vh; flex-direction: column; padding: 15px; box-sizing: border-box; }
+        /* --- QUIZ PAGE --- */
+        #quiz { display: none; flex-direction: column; height: 100%; padding: 15px; box-sizing: border-box; }
         
         #header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 10px; 
-            background: #f1f1f1;
-            padding: 10px;
-            border-radius: 10px;
-            font-family: sans-serif; /* Keep UI clean */
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 10px; border-bottom: 1px solid #eee; font-family: sans-serif;
         }
         
+        /* Smaller Font Size for PC and Phone */
         #card { 
-            font-size: 45vw; 
+            font-size: 30vw; /* Reduced from 45vw */
             flex: 1; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-family: inherit; /* PC: Kaiti | Phone: Default */
+            font-family: inherit;
+        }
+        /* Extra limit for very wide PC screens */
+        @media (min-width: 600px) {
+            #card { font-size: 150px; }
         }
 
-        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .btn-y { background-color: #2ecc71; padding: 20px; font-size: 35px; border-radius: 15px; color: white; border: none; }
-        .btn-n { background-color: #e74c3c; padding: 20px; font-size: 35px; border-radius: 15px; color: white; border: none; }
-        .btn-s { background-color: #95a5a6; grid-column: span 2; padding: 10px; color: white; border: none; border-radius: 8px; font-family: sans-serif; }
+        /* Buttons at the BOTTOM */
+        #controls { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            padding-bottom: 20px;
+        }
 
-        .voice-box { display: flex; align-items: center; gap: 8px; font-weight: bold; font-family: sans-serif; }
-        .voice-box input { width: 24px; height: 24px; }
+        .btn-action { 
+            padding: 20px; border: none; border-radius: 15px; font-size: 30px; color: white;
+            transition: opacity 0.1s;
+        }
+        .btn-action:active { opacity: 0.7; }
+        .yes { background-color: #2ecc71; }
+        .no { background-color: #e74c3c; }
+
+        .btn-exit { background: #95a5a6; border: none; padding: 5px 12px; border-radius: 5px; color: white; font-size: 12px; }
+
+        .voice-box { display: flex; align-items: center; gap: 8px; font-weight: bold; font-family: sans-serif; font-size: 14px; }
+        .voice-box input { width: 18px; height: 18px; }
     </style>
 </head>
 <body>
 
-<div id="setup">
-    <h2 style="font-family: sans-serif;">Flashcard Editor</h2>
-    <textarea id="inputText" placeholder="Paste your words here..."></textarea>
-    <div style="margin-top: 15px; font-family: sans-serif;">
-        <label><input type="checkbox" id="shuffle"> Shuffle Cards</label>
-    </div>
-    <button class="btn-start" onclick="go()">START QUIZ</button>
-</div>
-
-<div id="quiz">
-    <div id="header">
-        <div id="score" style="font-size: 20px; font-weight: bold;">0 / 0</div>
-        <label class="voice-box">
-            <span>🔊 Voice</span>
-            <input type="checkbox" id="sound" checked>
-        </label>
-        <button class="btn-s" style="margin:0; width:auto; padding: 5px 10px;" onclick="stop()">EXIT</button>
+<div id="app-container">
+    <div id="setup">
+        <h2 style="font-family: sans-serif; margin-top: 0;">Flashcard Editor</h2>
+        <textarea id="inputText" placeholder="Enter words here..."></textarea>
+        <div style="margin-top: 15px; font-family: sans-serif;">
+            <label><input type="checkbox" id="shuffle"> Shuffle Cards</label>
+        </div>
+        <button class="btn-start" onclick="go()">START</button>
     </div>
 
-    <div id="controls">
-        <button class="btn-n" onclick="ans(false)">❌</button>
-        <button class="btn-y" onclick="ans(true)">✅</button>
-    </div>
+    <div id="quiz">
+        <div id="header">
+            <div id="score" style="font-weight: bold;">0 / 0</div>
+            <label class="voice-box">
+                <span>🔊 Voice</span>
+                <input type="checkbox" id="sound" checked>
+            </label>
+            <button class="btn-exit" onclick="stop()">EXIT</button>
+        </div>
 
-    <div id="card"></div>
+        <div id="card"></div>
+
+        <div id="controls">
+            <button class="btn-action no" onclick="ans(false)">❌</button>
+            <button class="btn-action yes" onclick="ans(true)">✅</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -95,13 +120,13 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const s = localStorage.getItem("hybrid_kaiti_save");
+        const s = localStorage.getItem("hybrid_v2_save");
         if (s) document.getElementById("inputText").value = s;
     };
 
     function go() {
         const t = document.getElementById("inputText").value;
-        localStorage.setItem("hybrid_kaiti_save", t);
+        localStorage.setItem("hybrid_v2_save", t);
         list = t.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -113,7 +138,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Session Done!\n✅ ${ok} Correct\n❌ ${no} Incorrect`);
+            alert(`Results\n✅ ${ok}  ❌ ${no}`);
             stop();
             return;
         }
