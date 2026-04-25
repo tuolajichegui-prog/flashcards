@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KaiTi Flashcards</title>
+    <title>Standard Kaiti App</title>
     
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
@@ -60,7 +60,7 @@
             font-weight: bold;
         }
 
-        /* --- QUIZ PAGE (Everything moved UP) --- */
+        /* --- QUIZ PAGE (ALL BUTTONS HIGHER UP) --- */
         #quiz { 
             display: none; 
             height: 100vh; 
@@ -72,77 +72,83 @@
         #top-controls {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
+            padding-bottom: 20px;
         }
 
         #quiz-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 10px;
+            background: #f1f3f5;
+            padding: 8px 15px;
+            border-radius: 50px; /* Pill shape */
             font-family: sans-serif;
         }
 
         #answer-btns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 15px;
         }
 
         .voice-control {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
             font-family: sans-serif;
+            font-weight: bold;
         }
 
-        .voice-control input { width: 22px; height: 22px; }
+        .voice-control input { width: 24px; height: 24px; }
 
-        /* The BIG Character (Moved Down) */
+        /* The BIG Character (Below the buttons) */
         #card { 
-            font-size: 35vw; 
+            font-size: 38vw; 
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: inherit;
             color: #000;
-            margin-top: -20px; /* Pulls it up slightly from the absolute bottom */
         }
 
-        /* Buttons */
-        .btn-correct { background: var(--success); color: white; padding: 15px; border-radius: 12px; border: none; font-size: 28px; }
-        .btn-incorrect { background: var(--danger); color: white; padding: 15px; border-radius: 12px; border: none; font-size: 28px; }
+        /* Button Styling */
+        .btn-correct { background: var(--success); color: white; padding: 20px; border-radius: 15px; border: none; font-size: 32px; box-shadow: 0 4px 0 #27ae60; }
+        .btn-incorrect { background: var(--danger); color: white; padding: 20px; border-radius: 15px; border: none; font-size: 32px; box-shadow: 0 4px 0 #c0392b; }
         
         .btn-stop { 
-            background: #6c757d; 
-            padding: 8px; 
+            background: #495057; 
+            padding: 8px 15px; 
             color: white;
             font-size: 14px;
-            border-radius: 8px;
+            border-radius: 20px;
             border: none;
             font-family: sans-serif;
         }
+
+        /* Prevents double-tap zoom on buttons */
+        button { touch-action: manipulation; }
     </style>
 </head>
 <body>
 
 <div id="setup">
     <h2 style="font-family: sans-serif;">Flashcard Editor</h2>
-    <textarea id="inputText" placeholder="Enter words..."></textarea>
+    <textarea id="inputText" placeholder="Paste your words here..."></textarea>
     <div class="setup-controls">
-        <label><input type="checkbox" id="shuffleToggle"> Shuffle</label>
+        <label style="font-family: sans-serif; font-size: 18px;">
+            <input type="checkbox" id="shuffleToggle" style="width: 20px; height: 20px;"> Shuffle
+        </label>
     </div>
-    <button class="btn-start" onclick="startQuiz()">▶ START</button>
+    <button class="btn-start" onclick="startQuiz()">▶ START QUIZ</button>
 </div>
 
 <div id="quiz">
     <div id="top-controls">
         <div id="quiz-header">
-            <div id="score" style="font-weight:bold">0 / 0</div>
+            <div id="score" style="font-weight:bold; font-size: 18px;">0 / 0</div>
             <label class="voice-control">
                 <span>🔊 Voice</span>
                 <input type="checkbox" id="soundToggle" checked>
@@ -202,7 +208,7 @@
 
     function showCard() {
         if (currentIndex >= cards.length) {
-            alert(`✅ ${correct} | ❌ ${incorrect}`);
+            alert(`Complete!\n✅ ${correct} Correct\n❌ ${incorrect} Incorrect`);
             stopQuiz();
             return;
         }
@@ -218,6 +224,7 @@
         document.getElementById("correctBtn").disabled = true;
         document.getElementById("incorrectBtn").disabled = true;
         if (isCorrect) correct++; else incorrect++;
+        
         speak(cards[currentIndex], () => {
             currentIndex++;
             showCard();
