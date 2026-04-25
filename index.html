@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calligraphy Skeleton Kaiti</title>
+    <title>Aesthetic Evaluation System</title>
     
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #2c3e50;
+            --primary: #1a1a1a;
             --success: #27ae60;
-            --danger: #c0392b;
-            --bg: #ffffff;
+            --danger: #e74c3c;
+            --ui-bg: #ffffff;
         }
 
         body { 
-            font-family: 'ZCOOL XiaoWei', serif; 
+            font-family: 'ZCOOL XiaoWei', "KaiTi", serif; 
             text-align: center; 
-            background: var(--bg); 
+            background: #fdfdfd; 
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -26,167 +26,188 @@
             overflow: hidden;
         }
 
-        /* --- SETUP --- */
-        #setup { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+        /* --- EDITOR SCREEN --- */
+        #setup { padding: 20px; flex: 1; display: flex; flex-direction: column; }
         textarea { 
-            width: 100%; height: 40vh; font-size: 22px; font-family: inherit; 
-            padding: 15px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box;
+            width: 100%; flex: 0.6; font-size: 20px; font-family: inherit; 
+            padding: 15px; border: 1px solid #ddd; border-radius: 8px; outline: none;
         }
-        .btn-start { 
-            margin-top: 15px; padding: 18px; font-size: 20px; border-radius: 10px; 
-            border: none; background: var(--primary); color: white; font-weight: bold;
+        .btn-main { 
+            margin-top: 20px; padding: 18px; background: var(--primary); 
+            color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold;
         }
 
-        /* --- QUIZ (CONTROLS AT TOP) --- */
+        /* --- EVALUATION QUIZ (TOP-HEAVY UI) --- */
         #quiz { display: none; height: 100vh; flex-direction: column; padding: 10px; box-sizing: border-box; }
 
-        #top-ui {
+        /* Scoring Dashboard at the TOP */
+        #eval-dashboard {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            z-index: 10;
+            gap: 12px;
+            width: 100%;
+            background: var(--ui-bg);
+            padding: 15px;
+            border-bottom: 2px solid #eee;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            z-index: 100;
         }
 
-        #header-bar {
+        #stat-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f4f4f4;
-            padding: 10px 15px;
-            border-radius: 40px;
             font-family: sans-serif;
+            font-size: 14px;
+            color: #666;
         }
 
-        #btn-row {
+        #action-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 15px;
         }
 
-        .voice-box { display: flex; align-items: center; gap: 8px; font-family: sans-serif; font-weight: bold; }
-        .voice-box input { width: 24px; height: 24px; }
+        /* The Evaluation Buttons */
+        .eval-btn { 
+            padding: 15px; border: none; border-radius: 12px; font-size: 28px; color: white;
+            transition: transform 0.1s; touch-action: manipulation;
+        }
+        .eval-btn:active { transform: scale(0.95); }
+        .pass { background: var(--success); box-shadow: 0 4px #1e8449; }
+        .fail { background: var(--danger); box-shadow: 0 4px #c0392b; }
 
-        /* THE CHARACTER (The 'Model' for the patent style) */
-        #card { 
-            font-size: 45vw; /* Maximum size to show stroke structure */
+        .voice-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .voice-toggle input { width: 20px; height: 20px; }
+
+        /* THE MODEL CHARACTER (Centered in the 'Fusion' Area) */
+        #display-area {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+        }
+
+        #character { 
+            font-size: 42vw; 
             font-family: inherit;
             color: #000;
             line-height: 1;
+            z-index: 1;
         }
 
-        /* Buttons */
-        .btn-check { padding: 15px; border-radius: 12px; border: none; font-size: 30px; color: white; box-shadow: 0 4px #999; }
-        .btn-check:active { transform: translateY(2px); box-shadow: 0 2px #999; }
-        .yes { background: var(--success); }
-        .no { background: var(--danger); }
-        
-        .btn-exit { background: #95a5a6; padding: 8px 12px; color: white; border-radius: 20px; border: none; font-size: 13px; }
+        /* Background Grid mimicking the multi-scale fusion evaluation */
+        #grid {
+            position: absolute;
+            width: 80vw;
+            height: 80vw;
+            border: 1px solid #ffecec;
+            background-image: 
+                linear-gradient(to right, #ffecec 1px, transparent 1px),
+                linear-gradient(to bottom, #ffecec 1px, transparent 1px);
+            background-size: 50% 50%;
+            z-index: 0;
+        }
 
+        .btn-exit { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; color: #999; }
     </style>
 </head>
 <body>
 
 <div id="setup">
-    <h2 style="font-family: sans-serif;">Skeleton Kaiti Editor</h2>
-    <textarea id="inputText" placeholder="Enter characters..."></textarea>
+    <h2 style="font-family: sans-serif; letter-spacing: 1px;">Aesthetic Analysis System</h2>
+    <textarea id="inputText" placeholder="Input character string for evaluation..."></textarea>
     <div style="margin: 15px 0; font-family: sans-serif;">
-        <label><input type="checkbox" id="shuffleToggle" style="width: 18px; height: 18px;"> Shuffle</label>
+        <label><input type="checkbox" id="shuffleToggle"> Randomize sequence</label>
     </div>
-    <button class="btn-start" onclick="startQuiz()">▶ OPEN TEACHING SYSTEM</button>
+    <button class="btn-main" onclick="startApp()">INITIALIZE SYSTEM</button>
 </div>
 
 <div id="quiz">
-    <div id="top-ui">
-        <div id="header-bar">
-            <div id="score" style="font-weight:bold;">0 / 0</div>
-            <label class="voice-box">
-                <span>🔊 Voice</span>
+    <div id="eval-dashboard">
+        <div id="stat-bar">
+            <span id="counter" style="font-weight: bold; color: #000;">ID: 0/0</span>
+            <label class="voice-toggle">
+                <span>AUDIO</span>
                 <input type="checkbox" id="soundToggle" checked>
             </label>
-            <button class="btn-exit" onclick="stopQuiz()">EXIT</button>
+            <button class="btn-exit" onclick="exitApp()">EXIT</button>
         </div>
 
-        <div id="btn-row">
-            <button id="noBtn" class="btn-check no" onclick="answer(false)">❌</button>
-            <button id="yesBtn" class="btn-check yes" onclick="answer(true)">✅</button>
+        <div id="action-row">
+            <button id="failBtn" class="eval-btn fail" onclick="handleInput(false)">✘</button>
+            <button id="passBtn" class="eval-btn pass" onclick="handleInput(true)">✔</button>
         </div>
     </div>
 
-    <div id="card"></div>
+    <div id="display-area">
+        <div id="grid"></div>
+        <div id="character"></div>
+    </div>
 </div>
 
 <script>
-    let cards = [];
-    let currentIndex = 0;
-    let correct = 0;
-    let incorrect = 0;
-
-    const flipSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+    let list = [];
+    let idx = 0;
+    let score = { ok: 0, no: 0 };
+    const sfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
 
     window.onload = () => {
-        const saved = localStorage.getItem("cards_save");
-        if (saved) document.getElementById("inputText").value = saved;
+        document.getElementById("inputText").value = localStorage.getItem("eval_data") || "";
     };
 
-    document.getElementById("inputText").addEventListener("input", (e) => {
-        localStorage.setItem("cards_save", e.target.value);
-    });
+    function startApp() {
+        const text = document.getElementById("inputText").value;
+        list = text.split("\n").filter(t => t.trim() !== "");
+        if (list.length === 0) return;
+        localStorage.setItem("eval_data", text);
+        
+        if (document.getElementById("shuffleToggle").checked) list.sort(() => Math.random() - 0.5);
 
-    function speak(text, callback) {
-        if (!document.getElementById("soundToggle").checked) {
-            if (callback) callback();
-            return;
-        }
-        speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
-        utterance.rate = 0.8; // Slightly slower for teaching clarity
-        if (callback) utterance.onend = callback;
-        speechSynthesis.speak(utterance);
-    }
-
-    function startQuiz() {
-        const raw = document.getElementById("inputText").value;
-        cards = raw.split("\n").filter(line => line.trim() !== "");
-        if (cards.length === 0) return;
-        if (document.getElementById("shuffleToggle").checked) cards.sort(() => Math.random() - 0.5);
-
-        currentIndex = 0; correct = 0; incorrect = 0;
+        idx = 0; score = { ok: 0, no: 0 };
         document.getElementById("setup").style.display = "none";
         document.getElementById("quiz").style.display = "flex";
-        showCard();
+        render();
     }
 
-    function showCard() {
-        if (currentIndex >= cards.length) {
-            alert(`Session Complete\n✅ ${correct} | ❌ ${incorrect}`);
-            stopQuiz();
+    function render() {
+        if (idx >= list.length) {
+            alert(`Analysis Finished\nPass: ${score.ok}\nFail: ${score.no}`);
+            exitApp();
             return;
         }
-        flipSound.currentTime = 0;
-        flipSound.play();
-        document.getElementById("card").innerText = cards[currentIndex];
-        document.getElementById("score").innerText = `${currentIndex + 1}/${cards.length}`;
-        document.getElementById("yesBtn").disabled = false;
-        document.getElementById("noBtn").disabled = false;
+        sfx.currentTime = 0; sfx.play();
+        document.getElementById("character").innerText = list[idx];
+        document.getElementById("counter").innerText = `SEQ: ${idx + 1}/${list.length}`;
+        document.getElementById("passBtn").disabled = false;
+        document.getElementById("failBtn").disabled = false;
     }
 
-    function answer(isCorrect) {
-        document.getElementById("yesBtn").disabled = true;
-        document.getElementById("noBtn").disabled = true;
-        if (isCorrect) correct++; else incorrect++;
-        
-        speak(cards[currentIndex], () => {
-            currentIndex++;
-            showCard();
-        });
+    function handleInput(status) {
+        document.getElementById("passBtn").disabled = true;
+        document.getElementById("failBtn").disabled = true;
+        if (status) score.ok++; else score.no++;
+
+        if (document.getElementById("soundToggle").checked) {
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(list[idx]);
+            u.lang = 'zh-CN';
+            u.onend = () => { idx++; render(); };
+            speechSynthesis.speak(u);
+        } else {
+            idx++;
+            render();
+        }
     }
 
-    function stopQuiz() {
+    function exitApp() {
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
