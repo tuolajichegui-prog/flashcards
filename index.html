@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clean Kaiti Cards</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600&display=swap" rel="stylesheet">
-
+    <title>True KaiTi Flashcards</title>
     <style>
         body { 
-            /* Clean Serif stack: No messy handwriting styles */
-            font-family: 'Noto Serif SC', serif; 
+            /* This stack forces the standard PC/Mac/iOS KaiTi. No curly fonts included. */
+            font-family: "KaiTi", "楷体", "STKaiti", "Kaiti SC", "Kaiti TC", serif; 
             text-align: center; 
             margin: 0;
             background-color: #ffffff;
@@ -20,45 +17,45 @@
             color: #000;
         }
 
-        /* --- SETUP --- */
+        /* --- SETUP PAGE --- */
         #setup { padding: 20px; flex: 1; display: flex; flex-direction: column; }
         textarea { 
-            width: 100%; height: 45vh; font-size: 20px; font-family: inherit; 
-            padding: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box;
+            width: 100%; height: 50vh; font-size: 20px; font-family: inherit; 
+            padding: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;
         }
         .btn-start { 
-            margin-top: 20px; padding: 20px; font-size: 22px; border-radius: 15px; 
-            border: none; background-color: #000; color: white; font-weight: bold;
+            margin-top: 20px; padding: 18px; font-size: 22px; border-radius: 12px; 
+            border: none; background-color: #333; color: white; font-weight: bold;
         }
 
-        /* --- QUIZ --- */
+        /* --- QUIZ PAGE --- */
         #quiz { display: none; flex-direction: column; height: 100vh; padding: 15px; }
-        #header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        #header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-family: sans-serif; }
         
         #card { 
-            font-size: 45vw; /* Super big and clean */
+            font-size: 45vw; /* Maximum size */
             flex: 1; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-family: 'Noto Serif SC', serif;
-            font-weight: 600; 
+            font-family: inherit; /* Uses the KaiTi stack from body */
+            font-weight: normal; 
         }
 
-        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .btn-y { background-color: #2ecc71; padding: 20px; font-size: 35px; border-radius: 15px; color: white; border: none; }
         .btn-n { background-color: #e74c3c; padding: 20px; font-size: 35px; border-radius: 15px; color: white; border: none; }
-        .btn-s { background-color: #95a5a6; grid-column: span 2; padding: 10px; color: white; border: none; border-radius: 8px; font-family: sans-serif; }
+        .btn-s { background-color: #95a5a6; grid-column: span 2; padding: 10px; color: white; border: none; border-radius: 8px; margin-top: 10px; }
 
-        .voice-box { display: flex; align-items: center; gap: 8px; font-weight: bold; font-family: sans-serif; }
-        .voice-box input { width: 24px; height: 24px; }
+        .voice-box { display: flex; align-items: center; gap: 8px; font-weight: bold; }
+        .voice-box input { width: 22px; height: 22px; }
     </style>
 </head>
 <body>
 
 <div id="setup">
     <h2 style="font-family: sans-serif;">Flashcard Editor</h2>
-    <textarea id="inputText" placeholder="Enter words here..."></textarea>
+    <textarea id="inputText" placeholder="Paste your words here..."></textarea>
     <div style="margin-top: 15px; font-family: sans-serif;">
         <label><input type="checkbox" id="shuffle"> Shuffle Cards</label>
     </div>
@@ -67,7 +64,7 @@
 
 <div id="quiz">
     <div id="header">
-        <div id="score" style="font-size: 20px; font-family: sans-serif; font-weight: bold;">0 / 0</div>
+        <div id="score" style="font-size: 20px;">0 / 0</div>
         <label class="voice-box">
             <span>🔊 Voice</span>
             <input type="checkbox" id="sound" checked>
@@ -89,13 +86,13 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const s = localStorage.getItem("cards_v3");
+        const s = localStorage.getItem("clean_kaiti_save");
         if (s) document.getElementById("inputText").value = s;
     };
 
     function go() {
         const t = document.getElementById("inputText").value;
-        localStorage.setItem("cards_v3", t);
+        localStorage.setItem("clean_kaiti_save", t);
         list = t.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -107,7 +104,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Done!\n✅ ${ok} Correct\n❌ ${no} Incorrect`);
+            alert(`✅ ${ok}  ❌ ${no}`);
             stop();
             return;
         }
