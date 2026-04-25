@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Pace Flashcards</title>
+    <title>Smart Hybrid Flashcards</title>
     <style>
         html, body {
-            overflow-y: auto;
-            margin: 0;
-            padding: 0;
+            overflow-y: auto; margin: 0; padding: 0;
             background-color: #f7f7f7;
             font-family: "KaiTi", "楷体", "STKaiti", system-ui, sans-serif;
             text-align: center;
@@ -16,41 +14,24 @@
         }
 
         #app-container {
-            max-width: 400px; 
-            margin: 0 auto;
-            background: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            max-width: 400px; margin: 0 auto;
+            background: #ffffff; min-height: 100vh;
+            display: flex; flex-direction: column;
             box-shadow: 0 0 15px rgba(0,0,0,0.05);
         }
 
         #setup { padding: 20px; display: flex; flex-direction: column; }
         
         textarea {
-            width: 100%;
-            height: 300px;
-            font-size: 16px;
-            font-family: inherit;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            resize: none !important; 
-            outline: none;
+            width: 100%; height: 300px; font-size: 16px; font-family: inherit;
+            padding: 12px; border: 1px solid #ddd; border-radius: 10px;
+            box-sizing: border-box; margin-bottom: 15px; resize: none !important; 
         }
 
         .btn-start {
-            width: 100%;
-            padding: 18px;
-            font-size: 20px;
-            background: #111;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
+            width: 100%; padding: 18px; font-size: 20px;
+            background: #111; color: #fff; border: none;
+            border-radius: 12px; font-weight: bold; cursor: pointer;
         }
 
         #quiz { display: none; padding: 15px; flex-direction: column; }
@@ -61,39 +42,28 @@
         }
 
         #card-box {
-            padding: 40px 15px;
-            background: #fafafa;
-            border-radius: 15px;
-            border: 1px solid #eee;
-            min-height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
+            padding: 40px 15px; background: #fafafa; border-radius: 15px;
+            border: 1px solid #eee; min-height: 220px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
         }
 
         #card { font-size: 80px; line-height: 1.3; word-wrap: break-word; width: 100%; font-family: inherit; }
 
         #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        .btn-action {
-            padding: 22px; border-radius: 15px; font-size: 32px; border: none; color: white;
-            cursor: pointer;
-        }
-
+        .btn-action { padding: 22px; border-radius: 15px; font-size: 32px; border: none; color: white; cursor: pointer; }
         .yes { background: #27ae60; }
         .no { background: #e74c3c; }
-
         .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        .status-pill { font-size: 12px; padding: 4px 8px; border-radius: 20px; background: #eee; font-family: sans-serif; font-weight: bold; }
+        .pill { font-size: 11px; padding: 4px 8px; border-radius: 20px; background: #eee; font-family: sans-serif; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Smart Pace Editor</h3>
-        <textarea id="inputText" placeholder="Enter words or sentences..."></textarea>
+        <h3 style="font-family: sans-serif;">Smart Hybrid Mode</h3>
+        <textarea id="inputText" placeholder="Enter cards here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -103,7 +73,7 @@
     <div id="quiz">
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
-            <div id="modePill" class="status-pill">Normal</div>
+            <div id="modeStatus" class="pill">Auto-Pacing</div>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
         <div id="card-box"><div id="card"></div></div>
@@ -118,16 +88,18 @@
     let list = [];
     let idx = 0;
     let ok = 0, no = 0;
+    let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("smart_pace_save");
+        const saved = localStorage.getItem("smart_hybrid_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
+        isSpeaking = false;
         speechSynthesis.cancel();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("smart_pace_save", text);
+        localStorage.setItem("smart_hybrid_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -139,57 +111,57 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`✅ ${ok} Correct | ❌ ${no} Wrong`);
+            alert(`Done!\n✅ ${ok} Correct | ❌ ${no} Wrong`);
             stop();
             return;
         }
         const currentText = list[idx];
         const cardDisplay = document.getElementById("card");
-        const pill = document.getElementById("modePill");
-        
         cardDisplay.innerText = currentText;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
         
-        // Visual indicator for the smart logic
-        if (currentText.length > 4) {
-            pill.innerText = "Slow (Long)";
-            pill.style.background = "#fff3cd";
-        } else {
-            pill.innerText = "Normal (Short)";
-            pill.style.background = "#d1e7dd";
-        }
-
-        if (currentText.length > 10) cardDisplay.style.fontSize = "28px";
-        else if (currentText.length > 4) cardDisplay.style.fontSize = "50px";
-        else cardDisplay.style.fontSize = "85px";
+        if (currentText.length > 10) cardDisplay.style.fontSize = "26px";
+        else if (currentText.length > 4) cardDisplay.style.fontSize = "45px";
+        else cardDisplay.style.fontSize = "80px";
     }
 
-    function speakSmart(text) {
+    async function speakSmart(text) {
+        isSpeaking = true;
         speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'zh-CN';
         
-        // THE SMART LOGIC
-        if (text.length > 4) {
-            msg.rate = 0.5; // Very slow for sentences
+        if (text.length <= 4) {
+            // SHORT WORDS: Natural flow to keep tones perfect (like Gēge)
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-CN';
+            msg.rate = 1.0; 
+            msg.onend = () => { if (isSpeaking) { isSpeaking = false; idx++; show(); } };
+            speechSynthesis.speak(msg);
         } else {
-            msg.rate = 1.0; // Natural speed for short words
+            // LONG SENTENCES: Character-by-character with the 0.07s delay you liked
+            const chars = Array.from(text);
+            for (let char of chars) {
+                if (!isSpeaking) break;
+                const msg = new SpeechSynthesisUtterance(char);
+                msg.lang = 'zh-CN';
+                msg.rate = 1.0; // Keep natural sound, just slow down the gaps
+                await new Promise(resolve => {
+                    msg.onend = resolve;
+                    speechSynthesis.speak(msg);
+                });
+                await new Promise(r => setTimeout(r, 70));
+            }
+            if (isSpeaking) { isSpeaking = false; idx++; show(); }
         }
-
-        msg.onend = () => {
-            idx++; 
-            show();
-        };
-        
-        speechSynthesis.speak(msg);
     }
 
     function ans(correct) {
+        if (isSpeaking) return; 
         if (correct) ok++; else no++;
         speakSmart(list[idx]);
     }
 
     function stop() {
+        isSpeaking = false;
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
