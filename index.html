@@ -3,109 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaiti Cards</title>
+    <title>KaiTi Flashcards</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --primary: #4A90E2;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --bg: #ffffff;
+        }
+
         body { 
-            font-family: 'Noto Serif SC', "KaiTi", "楷体", serif; 
+            /* The classic KaiTi font stack you liked */
+            font-family: 'ZCOOL XiaoWei', "KaiTi", "楷体", "STKaiti", serif; 
             text-align: center; 
+            background: var(--bg); 
             margin: 0;
-            background: #ffffff;
             display: flex;
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            color: #000;
         }
 
         /* --- SETUP PAGE --- */
-        #setup { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        #setup { 
+            padding: 15px; 
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
         textarea { 
-            width: 100%; height: 50vh; font-size: 20px; font-family: inherit; 
-            padding: 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box;
+            width: 100%; 
+            height: 45vh;
+            font-size: 22px; 
+            font-family: inherit; 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 2px solid #ccc;
+            box-sizing: border-box;
         }
+
+        .setup-controls {
+            margin: 15px 0;
+            font-family: sans-serif;
+        }
+
         .btn-start { 
-            margin-top: 20px; padding: 20px; font-size: 24px; border-radius: 15px; 
-            border: none; background: #000; color: white; font-weight: bold;
+            padding: 18px; 
+            font-size: 22px; 
+            border-radius: 15px; 
+            border: none; 
+            background: var(--primary); 
+            color: white; 
+            font-weight: bold;
         }
 
-        /* --- QUIZ PAGE (EVERYTHING AT THE TOP) --- */
-        #quiz { display: none; height: 100vh; flex-direction: column; padding: 10px; }
+        /* --- QUIZ PAGE (EVERYTHING HIGH UP) --- */
+        #quiz { 
+            display: none; 
+            height: 100vh; 
+            flex-direction: column; 
+            padding: 10px;
+            box-sizing: border-box;
+        }
 
-        #ui-top {
+        #top-controls {
             display: flex;
             flex-direction: column;
             gap: 10px;
             width: 100%;
-            padding-bottom: 20px;
         }
 
-        #header {
+        #quiz-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f7f7f7;
-            padding: 10px 20px;
-            border-radius: 50px;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
             font-family: sans-serif;
         }
 
-        #actions {
+        #answer-btns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .btn { 
-            padding: 15px; border: none; border-radius: 15px; font-size: 35px; color: white;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1); touch-action: manipulation;
+        .voice-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: sans-serif;
+            font-weight: bold;
         }
-        .yes { background: #2ecc71; }
-        .no { background: #e74c3c; }
 
-        .voice-label { display: flex; align-items: center; gap: 5px; font-weight: bold; font-family: sans-serif; }
-        .voice-label input { width: 22px; height: 22px; }
+        .voice-control input { width: 22px; height: 22px; }
 
-        /* THE CHARACTER (Center Bottom) */
+        /* THE CHARACTER (BIG) */
         #card { 
-            font-size: 45vw; 
+            font-size: 40vw; 
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            line-height: 1;
+            font-family: inherit;
+            color: #000;
         }
 
-        .btn-exit { background: none; border: 1px solid #ddd; padding: 5px 12px; border-radius: 20px; font-size: 14px; color: #999; }
+        /* Buttons */
+        .btn-correct { background: var(--success); color: white; padding: 20px; border-radius: 12px; border: none; font-size: 30px; }
+        .btn-incorrect { background: var(--danger); color: white; padding: 20px; border-radius: 12px; border: none; font-size: 30px; }
+        
+        .btn-stop { 
+            background: #6c757d; 
+            padding: 8px; 
+            color: white;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            font-family: sans-serif;
+        }
     </style>
 </head>
 <body>
 
 <div id="setup">
     <h2 style="font-family: sans-serif;">Flashcard Editor</h2>
-    <textarea id="inputText" placeholder="Enter text here..."></textarea>
-    <div style="margin: 15px 0; font-family: sans-serif;">
+    <textarea id="inputText" placeholder="Enter words..."></textarea>
+    <div class="setup-controls">
         <label><input type="checkbox" id="shuffleToggle"> Shuffle Cards</label>
     </div>
-    <button class="btn-start" onclick="start()">START QUIZ</button>
+    <button class="btn-start" onclick="startQuiz()">▶ START</button>
 </div>
 
 <div id="quiz">
-    <div id="ui-top">
-        <div id="header">
-            <span id="score" style="font-weight: bold;">0/0</span>
-            <label class="voice-label">
+    <div id="top-controls">
+        <div id="quiz-header">
+            <div id="score" style="font-weight:bold">0 / 0</div>
+            <label class="voice-control">
                 <span>🔊 Voice</span>
                 <input type="checkbox" id="soundToggle" checked>
             </label>
-            <button class="btn-exit" onclick="stop()">EXIT</button>
+            <button class="btn-stop" onclick="stopQuiz()">⏹ EXIT</button>
         </div>
 
-        <div id="actions">
-            <button id="noBtn" class="btn no" onclick="press(false)">❌</button>
-            <button id="yesBtn" class="btn yes" onclick="press(true)">✅</button>
+        <div id="answer-btns">
+            <button id="incorrectBtn" class="btn-incorrect" onclick="answer(false)">❌</button>
+            <button id="correctBtn" class="btn-correct" onclick="answer(true)">✅</button>
         </div>
     </div>
 
@@ -113,57 +161,71 @@
 </div>
 
 <script>
-    let list = [];
-    let cur = 0;
-    let ok = 0, no = 0;
-    const sound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+    let cards = [];
+    let currentIndex = 0;
+    let correct = 0;
+    let incorrect = 0;
+
+    const flipSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
 
     window.onload = () => {
-        document.getElementById("inputText").value = localStorage.getItem("save") || "";
+        const saved = localStorage.getItem("cards_save");
+        if (saved) document.getElementById("inputText").value = saved;
     };
 
-    function start() {
-        const t = document.getElementById("inputText").value;
-        list = t.split("\n").filter(x => x.trim() !== "");
-        if (list.length === 0) return;
-        localStorage.setItem("save", t);
-        if (document.getElementById("shuffleToggle").checked) list.sort(() => Math.random() - 0.5);
-        cur = 0; ok = 0; no = 0;
-        document.getElementById("setup").style.display = "none";
-        document.getElementById("quiz").style.display = "flex";
-        show();
-    }
+    document.getElementById("inputText").addEventListener("input", (e) => {
+        localStorage.setItem("cards_save", e.target.value);
+    });
 
-    function show() {
-        if (cur >= list.length) {
-            alert(`✅ ${ok}  ❌ ${no}`);
-            stop();
+    function speak(text, callback) {
+        if (!document.getElementById("soundToggle").checked) {
+            if (callback) callback();
             return;
         }
-        sound.currentTime = 0; sound.play();
-        document.getElementById("card").innerText = list[cur];
-        document.getElementById("score").innerText = `${cur + 1} / ${list.length}`;
-        document.getElementById("yesBtn").disabled = false;
-        document.getElementById("noBtn").disabled = false;
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        if (callback) utterance.onend = callback;
+        speechSynthesis.speak(utterance);
     }
 
-    function press(isOk) {
-        document.getElementById("yesBtn").disabled = true;
-        document.getElementById("noBtn").disabled = true;
-        if (isOk) ok++; else no++;
-        
-        if (document.getElementById("soundToggle").checked) {
-            speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(list[cur]);
-            u.lang = 'zh-CN';
-            u.onend = () => { cur++; show(); };
-            speechSynthesis.speak(u);
-        } else {
-            cur++; show();
+    function startQuiz() {
+        const raw = document.getElementById("inputText").value;
+        cards = raw.split("\n").filter(line => line.trim() !== "");
+        if (cards.length === 0) return;
+        if (document.getElementById("shuffleToggle").checked) cards.sort(() => Math.random() - 0.5);
+
+        currentIndex = 0; correct = 0; incorrect = 0;
+        document.getElementById("setup").style.display = "none";
+        document.getElementById("quiz").style.display = "flex";
+        showCard();
+    }
+
+    function showCard() {
+        if (currentIndex >= cards.length) {
+            alert(`✅ ${correct} | ❌ ${incorrect}`);
+            stopQuiz();
+            return;
         }
+        flipSound.currentTime = 0;
+        flipSound.play();
+        document.getElementById("card").innerText = cards[currentIndex];
+        document.getElementById("score").innerText = `${currentIndex + 1}/${cards.length}`;
+        document.getElementById("correctBtn").disabled = false;
+        document.getElementById("incorrectBtn").disabled = false;
     }
 
-    function stop() {
+    function answer(isCorrect) {
+        document.getElementById("correctBtn").disabled = true;
+        document.getElementById("incorrectBtn").disabled = true;
+        if (isCorrect) correct++; else incorrect++;
+        speak(cards[currentIndex], () => {
+            currentIndex++;
+            showCard();
+        });
+    }
+
+    function stopQuiz() {
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
