@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kaiti Flashcards Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --primary: #4A90E2;
@@ -13,8 +16,8 @@
         }
 
         body { 
-            /* Priority font stack for Windows, iOS, and Android Kaiti */
-            font-family: "KaiTi", "楷体", "STKaiti", "华文楷体", "Kaiti SC", "Kaiti TC", serif; 
+            /* Priority: Windows Kaiti -> iOS Kaiti -> Google Brush Font -> Serif */
+            font-family: "KaiTi", "楷体", "STKaiti", "华文楷体", "Kaiti SC", "Ma Shan Zheng", serif; 
             text-align: center; 
             background: var(--bg); 
             margin: 0;
@@ -22,10 +25,10 @@
             flex-direction: column;
             height: 100vh;
             color: #333;
-            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
         }
 
-        /* --- SETUP SCREEN --- */
+        /* --- SETUP PAGE --- */
         #setup { 
             padding: 15px; 
             flex: 1;
@@ -38,24 +41,22 @@
 
         textarea { 
             width: 100%; 
-            height: 40vh;
-            font-size: 20px; 
+            height: 45vh;
+            font-size: 22px; 
             font-family: inherit; 
             padding: 15px; 
             border-radius: 12px; 
             border: 2px solid #ccc;
             box-sizing: border-box;
             background: white;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .setup-controls {
-            margin: 15px 0;
+            margin: 20px 0;
             font-family: sans-serif;
             font-weight: bold;
         }
 
-        /* Large Start Button */
         .btn-start { 
             padding: 20px; 
             font-size: 22px; 
@@ -68,7 +69,7 @@
             touch-action: manipulation;
         }
 
-        /* --- QUIZ SCREEN (Voice Checkbox is here now) --- */
+        /* --- QUIZ PAGE --- */
         #quiz { 
             display: none; 
             height: 100vh; 
@@ -91,31 +92,29 @@
 
         #score { font-weight: bold; color: #444; font-size: 18px; }
 
-        /* BIGGER Voice Checkbox specifically for the Quiz Page */
         .voice-control {
             display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
             background: #eee;
-            padding: 5px 12px;
-            border-radius: 20px;
+            padding: 8px 15px;
+            border-radius: 25px;
         }
 
         .voice-control input {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
+            width: 25px;
+            height: 25px;
         }
 
         /* The main character display */
         #card { 
-            font-size: 28vw; 
+            font-size: 30vw; 
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: inherit;
+            font-family: inherit; /* Inherits the Kaiti font stack */
         }
 
         #controls {
@@ -125,9 +124,8 @@
             padding-bottom: 5px;
         }
 
-        button { font-family: sans-serif; cursor: pointer; }
-        .btn-correct { background: var(--success); color: white; padding: 25px; border-radius: 15px; border: none; font-size: 30px; }
-        .btn-incorrect { background: var(--danger); color: white; padding: 25px; border-radius: 15px; border: none; font-size: 30px; }
+        .btn-correct { background: var(--success); color: white; padding: 25px; border-radius: 15px; border: none; font-size: 35px; }
+        .btn-incorrect { background: var(--danger); color: white; padding: 25px; border-radius: 15px; border: none; font-size: 35px; }
         
         .btn-stop { 
             background: #6c757d; 
@@ -139,6 +137,7 @@
             border: none;
             margin-top: 10px;
             font-weight: bold;
+            font-family: sans-serif;
         }
 
     </style>
@@ -150,9 +149,9 @@
     <textarea id="inputText" placeholder="Enter words (one per line)..."></textarea>
     
     <div class="setup-controls">
-        <label style="cursor: pointer; font-size: 18px;">
-            <input type="checkbox" id="shuffleToggle" style="width: 22px; height: 22px; vertical-align: middle;"> 
-            <span style="vertical-align: middle; margin-left: 5px;">Shuffle Cards</span>
+        <label style="cursor: pointer; font-size: 20px;">
+            <input type="checkbox" id="shuffleToggle" style="width: 24px; height: 24px; vertical-align: middle;"> 
+            <span style="vertical-align: middle; margin-left: 8px;">Shuffle Cards</span>
         </label>
     </div>
     
@@ -161,10 +160,10 @@
 
 <div id="quiz">
     <div id="quiz-header">
-        <div id="score">Card 1/1</div>
+        <div id="score">0 / 0</div>
         
         <label class="voice-control">
-            <span style="font-size: 18px;">🔊 Voice</span>
+            <span style="font-size: 18px; font-weight: bold;">🔊 Voice</span>
             <input type="checkbox" id="soundToggle" checked>
         </label>
     </div>
@@ -184,20 +183,22 @@
     let correct = 0;
     let incorrect = 0;
 
+    // Standard flip sound effect
     const flipSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
 
-    // Persistence
+    // Load saved text from browser storage
     window.onload = () => {
         const saved = localStorage.getItem("cards_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
+    // Auto-save while typing
     document.getElementById("inputText").addEventListener("input", (e) => {
         localStorage.setItem("cards_save", e.target.value);
     });
 
     function speak(text, callback) {
-        // Checks the toggle on the QUIZ page
+        // If voice toggle is off, skip speech
         if (!document.getElementById("soundToggle").checked) {
             if (callback) callback();
             return;
@@ -231,6 +232,7 @@
             return;
         }
 
+        // Play flip sound and update UI
         flipSound.currentTime = 0;
         flipSound.play();
 
@@ -247,6 +249,7 @@
         
         if (isCorrect) correct++; else incorrect++;
 
+        // Steps: Hear current word -> Move to next
         speak(cards[currentIndex], () => {
             currentIndex++;
             showCard();
