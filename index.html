@@ -3,25 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Compact Hybrid Cards</title>
+    <title>Auto-Size Flashcards</title>
     <style>
         body { 
             font-family: "KaiTi", "楷体", "STKaiti", system-ui, sans-serif; 
             text-align: center; 
             margin: 0;
-            background-color: #f5f5f5;
+            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             height: 100vh;
+            overflow: hidden;
         }
 
+        /* Container limits width on PC */
         #app-container {
             width: 100%;
-            max-width: 450px; /* Keeps the whole app slim on PC */
+            max-width: 400px; 
             background: #ffffff;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
 
         /* --- SETUP --- */
@@ -33,37 +35,40 @@
         }
         .btn-start { 
             margin: 15px 0; padding: 15px; font-size: 18px; border-radius: 10px; 
-            border: none; background-color: #222; color: white; font-weight: bold;
+            border: none; background-color: #333; color: white; font-weight: bold;
         }
 
-        /* --- QUIZ PAGE --- */
+        /* --- QUIZ --- */
         #quiz { display: none; flex-direction: column; height: 100%; padding: 15px; box-sizing: border-box; }
         
         #header { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px 5px; font-family: sans-serif;
+            padding-bottom: 10px; border-bottom: 1px solid #eee;
         }
         
-        /* Smaller Character Box */
+        /* The Auto-Sizing Card Area */
         #card-frame {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #fafafa;
-            border: 1px solid #eee;
-            border-radius: 20px;
-            margin: 10px 0;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            margin: 20px 0;
+            padding: 10px;
+            overflow: hidden; /* Keeps text inside */
         }
 
         #card { 
-            font-size: 25vw; /* Smaller for phone */
             font-family: inherit;
-        }
-
-        /* Strict limit for PC screen size */
-        @media (min-width: 500px) {
-            #card { font-size: 120px; } /* Much smaller on PC */
+            word-wrap: break-word;
+            white-space: normal;
+            display: block;
+            width: 100%;
+            /* Initial size - JS will adjust this */
+            font-size: 100px; 
+            line-height: 1.2;
         }
 
         /* Buttons at the BOTTOM */
@@ -71,29 +76,27 @@
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             gap: 12px; 
-            padding: 10px 0;
+            padding-bottom: 10px;
         }
 
         .btn-action { 
             padding: 18px; border: none; border-radius: 12px; font-size: 28px; color: white;
-            touch-action: manipulation;
+            cursor: pointer;
         }
-        .yes { background-color: #27ae60; }
+        .yes { background-color: #2ecc71; }
         .no { background-color: #e74c3c; }
+        .btn-exit { background: #95a5a6; border: none; padding: 6px 10px; border-radius: 5px; color: white; font-size: 12px; }
 
-        .btn-exit { background: #95a5a6; border: none; padding: 6px 12px; border-radius: 4px; color: white; font-size: 11px; }
-
-        .voice-box { display: flex; align-items: center; gap: 6px; font-weight: bold; font-family: sans-serif; font-size: 13px; }
-        .voice-box input { width: 18px; height: 18px; }
+        .voice-box { display: flex; align-items: center; gap: 5px; font-family: sans-serif; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif; margin: 10px 0;">Card Editor</h3>
-        <textarea id="inputText" placeholder="Type or paste words..."></textarea>
-        <div style="margin-top: 12px; font-family: sans-serif;">
+        <h3 style="font-family: sans-serif;">Card Editor</h3>
+        <textarea id="inputText" placeholder="One card per line..."></textarea>
+        <div style="margin-top: 10px; font-family: sans-serif;">
             <label><input type="checkbox" id="shuffle"> Shuffle</label>
         </div>
         <button class="btn-start" onclick="go()">START</button>
@@ -126,13 +129,13 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const s = localStorage.getItem("compact_save");
+        const s = localStorage.getItem("autosize_save");
         if (s) document.getElementById("inputText").value = s;
     };
 
     function go() {
         const t = document.getElementById("inputText").value;
-        localStorage.setItem("compact_save", t);
+        localStorage.setItem("autosize_save", t);
         list = t.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -142,14 +145,33 @@
         show();
     }
 
+    // This function automatically adjusts font size to fit the box
+    function autoSizeText() {
+        const el = document.getElementById('card');
+        const parent = document.getElementById('card-frame');
+        let fontSize = 180; // Start big (good for single characters)
+        
+        el.style.fontSize = fontSize + 'px';
+        
+        // Shrink until it fits height and width
+        while ((el.offsetHeight > parent.offsetHeight - 20 || el.offsetWidth > parent.offsetWidth - 20) && fontSize > 20) {
+            fontSize -= 5;
+            el.style.fontSize = fontSize + 'px';
+        }
+    }
+
     function show() {
         if (idx >= list.length) {
-            alert(`Result: ✅ ${ok} ❌ ${no}`);
+            alert(`✅ ${ok}  ❌ ${no}`);
             stop();
             return;
         }
-        document.getElementById("card").innerText = list[idx];
+        const text = list[idx];
+        document.getElementById("card").innerText = text;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
+        
+        // Wait a tiny bit for the text to render then size it
+        setTimeout(autoSizeText, 10);
     }
 
     function ans(correct) {
