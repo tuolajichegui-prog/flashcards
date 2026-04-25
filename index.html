@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Paced Flashcards</title>
+    <title>3-Level Smart Flashcards</title>
     <style>
         html, body {
             overflow-y: auto; margin: 0; padding: 0;
@@ -67,13 +67,14 @@
 
         .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
         .score-box { font-weight: bold; font-family: sans-serif; font-size: 16px; }
+        .level-pill { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #eee; font-family: sans-serif; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Paced Editor</h3>
+        <h3 style="font-family: sans-serif;">3-Level Audio Editor</h3>
         <textarea id="inputText" placeholder="Enter cards here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
@@ -84,6 +85,7 @@
     <div id="quiz">
         <div id="header">
             <div id="score" class="score-box">0 / 0</div>
+            <div id="levelTag" class="level-pill">Level 1</div>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
         <div id="card-box"><div id="card"></div></div>
@@ -104,14 +106,14 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("smart_paced_v4");
+        const saved = localStorage.getItem("three_level_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         resetSpeech();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("smart_paced_v4", text);
+        localStorage.setItem("three_level_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -127,13 +129,27 @@
             stop();
             return;
         }
-        const currentText = list[idx];
+        const text = list[idx];
         const cardDisplay = document.getElementById("card");
-        cardDisplay.innerText = currentText;
+        const levelTag = document.getElementById("levelTag");
+        
+        cardDisplay.innerText = text;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
         
-        if (currentText.length > 10) cardDisplay.style.fontSize = "26px";
-        else if (currentText.length > 4) cardDisplay.style.fontSize = "45px";
+        // UI Feedback for levels
+        if (text.length <= 4) {
+            levelTag.innerText = "Lvl 1: Natural";
+            levelTag.style.background = "#d1e7dd";
+        } else if (text.length <= 9) {
+            levelTag.innerText = "Lvl 2: 0.01s";
+            levelTag.style.background = "#fff3cd";
+        } else {
+            levelTag.innerText = "Lvl 3: 0.02s";
+            levelTag.style.background = "#f8d7da";
+        }
+
+        if (text.length > 10) cardDisplay.style.fontSize = "26px";
+        else if (text.length > 4) cardDisplay.style.fontSize = "45px";
         else cardDisplay.style.fontSize = "80px";
     }
 
@@ -144,14 +160,16 @@
         speechSynthesis.cancel();
 
         if (text.length <= 4) {
-            // Natural for short words
+            // LEVEL 1: Natural
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-CN';
             msg.rate = 1.0;
             msg.onend = () => { isSpeaking = false; };
             speechSynthesis.speak(msg);
         } else {
-            // 0.010s delay for long text
+            // Determing delay based on length
+            const delay = (text.length > 9) ? 20 : 10;
+            
             const chars = Array.from(text);
             for (let char of chars) {
                 if (!isSpeaking) break;
@@ -162,7 +180,7 @@
                     msg.onend = resolve;
                     speechSynthesis.speak(msg);
                 });
-                await new Promise(r => setTimeout(r, 10)); // 0.01s gap
+                await new Promise(r => setTimeout(r, delay)); 
             }
             isSpeaking = false;
         }
