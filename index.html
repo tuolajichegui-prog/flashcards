@@ -3,62 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Natural Scroll Flashcards</title>
+    <title>Compact Scroll Flashcards</title>
     <style>
-        /* Forces the phone to allow scrolling on the whole page */
+        /* Natural scroll for phone, centered for PC */
         html, body {
-            overflow-y: auto !important;
-            height: auto !important;
-            min-height: 100%;
+            overflow-y: auto;
             margin: 0;
             padding: 0;
-            background-color: #f8f9fa;
+            background-color: #f5f5f5;
             font-family: "KaiTi", "楷体", "STKaiti", system-ui, sans-serif;
             text-align: center;
         }
 
         #app-container {
-            max-width: 500px;
+            max-width: 400px; /* Slimmer PC width */
             margin: 0 auto;
             background: #fff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
 
         /* --- SETUP --- */
         #setup {
             padding: 20px;
-            display: block; /* Normal flow */
+            display: block;
         }
 
         textarea {
             width: 100%;
-            min-height: 300px; /* Big area to start */
-            font-size: 18px;
+            height: 250px; /* Fixed smaller height */
+            font-size: 16px;
             font-family: inherit;
-            padding: 15px;
-            border: 2px solid #eee;
-            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             box-sizing: border-box;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            resize: none; /* DISABLED RESIZING */
+            display: block;
         }
 
         .btn-start {
             width: 100%;
-            padding: 20px;
-            font-size: 22px;
+            padding: 15px;
+            font-size: 20px;
             background: #222;
             color: #fff;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: bold;
+            cursor: pointer;
         }
 
         /* --- QUIZ --- */
         #quiz {
-            display: none; /* Toggled by JS */
+            display: none; 
             padding: 15px;
             flex-direction: column;
         }
@@ -68,75 +69,76 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            position: sticky; /* Keeps score visible at top */
+            position: sticky;
             top: 0;
             background: #fff;
             border-bottom: 1px solid #eee;
             z-index: 10;
         }
 
-        /* The Card Area: Just grows with the text */
+        /* Compact Card Area */
         #card-box {
-            padding: 60px 20px;
-            margin: 20px 0;
+            padding: 40px 15px;
+            margin: 15px 0;
             background: #fafafa;
-            border-radius: 20px;
-            border: 1px solid #f0f0f0;
-            min-height: 300px;
+            border-radius: 15px;
+            border: 1px solid #eee;
+            min-height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         #card {
-            font-size: 80px;
-            line-height: 1.4;
+            font-size: 70px;
+            line-height: 1.3;
             word-wrap: break-word;
             width: 100%;
             font-family: inherit;
         }
 
-        /* CONTROLS AT BOTTOM */
+        /* BUTTONS AT BOTTOM */
         #controls {
-            padding: 20px 0;
+            padding: 10px 0;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
         }
 
         .btn-action {
-            padding: 25px;
-            border-radius: 15px;
-            font-size: 35px;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 30px;
             border: none;
             color: white;
+            cursor: pointer;
         }
 
         .yes { background: #2ecc71; }
         .no { background: #e74c3c; }
 
-        .btn-exit { background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 6px; }
-        .voice-box { display: flex; align-items: center; gap: 8px; font-weight: bold; font-family: sans-serif; }
+        .btn-exit { background: #95a5a6; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+        .voice-box { display: flex; align-items: center; gap: 5px; font-weight: bold; font-family: sans-serif; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="setup">
-        <h2 style="font-family: sans-serif;">Card Editor</h2>
-        <textarea id="inputText" placeholder="Enter cards here..."></textarea>
-        <div style="margin-bottom: 20px; font-family: sans-serif;">
-            <label style="font-size: 18px;"><input type="checkbox" id="shuffle" style="width:20px; height:20px;"> Shuffle</label>
+        <h3 style="font-family: sans-serif; margin-top: 5px;">Editor</h3>
+        <textarea id="inputText" placeholder="Paste your words..."></textarea>
+        <div style="margin-bottom: 15px; font-family: sans-serif;">
+            <label><input type="checkbox" id="shuffle"> Shuffle</label>
         </div>
-        <button class="btn-start" onclick="go()">START QUIZ</button>
+        <button class="btn-start" onclick="go()">START</button>
     </div>
 
     <div id="quiz">
         <div id="header">
-            <div id="score" style="font-weight: bold; font-size: 20px;">0 / 0</div>
+            <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
                 <span>🔊 Voice</span>
-                <input type="checkbox" id="sound" checked style="width:20px; height:20px;">
+                <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
@@ -157,15 +159,14 @@
     let idx = 0;
     let ok = 0, no = 0;
 
-    // Load saved data
     window.onload = () => {
-        const saved = localStorage.getItem("natural_scroll_save");
+        const saved = localStorage.getItem("compact_natural_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("natural_scroll_save", text);
+        localStorage.setItem("compact_natural_save", text);
         
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
@@ -182,7 +183,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Finished!\n✅ ${ok} Correct\n❌ ${no} Incorrect`);
+            alert(`✅ ${ok} Correct\n❌ ${no} Incorrect`);
             stop();
             return;
         }
@@ -193,10 +194,11 @@
         cardDisplay.innerText = currentText;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
 
-        // Keep text big for short words, shrink slightly for long ones
-        cardDisplay.style.fontSize = currentText.length > 6 ? "40px" : "80px";
+        // Auto-scale font based on length
+        if (currentText.length > 8) cardDisplay.style.fontSize = "32px";
+        else if (currentText.length > 4) cardDisplay.style.fontSize = "50px";
+        else cardDisplay.style.fontSize = "80px";
 
-        // Scroll page back to top for new card
         window.scrollTo(0, 0);
     }
 
