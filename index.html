@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal Kaiti Cards</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
-
+    <title>Hybrid Kaiti App</title>
     <style>
         body { 
-            /* PC will use its KaiTi, Phone will download ZCOOL XiaoWei */
-            font-family: "KaiTi", "楷体", "STKaiti", 'ZCOOL XiaoWei', serif; 
+            /* This stack looks for PC Kaiti first. If not found (on a phone), it uses the system default sans-serif. */
+            font-family: "KaiTi", "楷体", "STKaiti", system-ui, -apple-system, sans-serif; 
             text-align: center; 
             margin: 0;
             background-color: #ffffff;
@@ -31,7 +28,7 @@
             border: none; background-color: #000; color: white; font-weight: bold;
         }
 
-        /* --- QUIZ PAGE (EVERYTHING AT TOP) --- */
+        /* --- QUIZ PAGE (BUTTONS AT TOP) --- */
         #quiz { display: none; height: 100vh; flex-direction: column; padding: 15px; box-sizing: border-box; }
         
         #header { 
@@ -39,9 +36,10 @@
             justify-content: space-between; 
             align-items: center; 
             margin-bottom: 10px; 
-            background: #f9f9f9;
+            background: #f1f1f1;
             padding: 10px;
             border-radius: 10px;
+            font-family: sans-serif; /* Keep UI clean */
         }
         
         #card { 
@@ -50,7 +48,7 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-family: inherit;
+            font-family: inherit; /* PC: Kaiti | Phone: Default */
         }
 
         #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
@@ -75,20 +73,20 @@
 
 <div id="quiz">
     <div id="header">
-        <div id="score" style="font-size: 20px; font-family: sans-serif; font-weight: bold;">0 / 0</div>
+        <div id="score" style="font-size: 20px; font-weight: bold;">0 / 0</div>
         <label class="voice-box">
             <span>🔊 Voice</span>
             <input type="checkbox" id="sound" checked>
         </label>
+        <button class="btn-s" style="margin:0; width:auto; padding: 5px 10px;" onclick="stop()">EXIT</button>
     </div>
 
-    <div id="card"></div>
-    
     <div id="controls">
         <button class="btn-n" onclick="ans(false)">❌</button>
         <button class="btn-y" onclick="ans(true)">✅</button>
-        <button class="btn-s" onclick="stop()">STOP</button>
     </div>
+
+    <div id="card"></div>
 </div>
 
 <script>
@@ -97,13 +95,13 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const s = localStorage.getItem("universal_kaiti_save");
+        const s = localStorage.getItem("hybrid_kaiti_save");
         if (s) document.getElementById("inputText").value = s;
     };
 
     function go() {
         const t = document.getElementById("inputText").value;
-        localStorage.setItem("universal_kaiti_save", t);
+        localStorage.setItem("hybrid_kaiti_save", t);
         list = t.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -115,7 +113,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Done!\n✅ ${ok} Correct\n❌ ${no} Incorrect`);
+            alert(`Session Done!\n✅ ${ok} Correct\n❌ ${no} Incorrect`);
             stop();
             return;
         }
