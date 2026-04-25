@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Precision 3-Level Flashcards</title>
+    <title>Turbo 3-Level Flashcards</title>
     <style>
         html, body {
             overflow-y: auto; margin: 0; padding: 0;
@@ -74,7 +74,7 @@
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Precision 3-Level Audio</h3>
+        <h3 style="font-family: sans-serif;">Turbo 3-Level Audio</h3>
         <textarea id="inputText" placeholder="Enter cards here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
@@ -106,14 +106,14 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("precision_3_save");
+        const saved = localStorage.getItem("turbo_3_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         resetSpeech();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("precision_3_save", text);
+        localStorage.setItem("turbo_3_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -140,10 +140,10 @@
             levelTag.innerText = "Lvl 1: Natural";
             levelTag.style.background = "#d1e7dd";
         } else if (text.length <= 9) {
-            levelTag.innerText = "Lvl 2: 0.006s";
+            levelTag.innerText = "Lvl 2: 0.001s";
             levelTag.style.background = "#fff3cd";
         } else {
-            levelTag.innerText = "Lvl 3: 0.010s";
+            levelTag.innerText = "Lvl 3: 0.004s";
             levelTag.style.background = "#f8d7da";
         }
 
@@ -165,15 +165,15 @@
             msg.onend = () => { isSpeaking = false; };
             speechSynthesis.speak(msg);
         } else {
-            // Updated Level 2 (6ms) and Level 3 (10ms)
-            const delay = (text.length > 9) ? 10 : 6;
+            // Updated Level 2 (1ms) and Level 3 (4ms)
+            const delay = (text.length > 9) ? 4 : 1;
             
             const chars = Array.from(text);
             for (let char of chars) {
                 if (!isSpeaking) break;
                 const msg = new SpeechSynthesisUtterance(char);
                 msg.lang = 'zh-CN';
-                msg.rate = 1.0;
+                msg.rate = 1.1; // Boosted character speed
                 await new Promise(resolve => {
                     msg.onend = resolve;
                     speechSynthesis.speak(msg);
