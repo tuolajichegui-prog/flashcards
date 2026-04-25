@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Natural Tone Flashcards</title>
+    <title>Smart Pace Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -38,7 +38,6 @@
             box-sizing: border-box;
             margin-bottom: 15px;
             resize: none !important; 
-            overflow-y: auto;
             outline: none;
         }
 
@@ -86,14 +85,15 @@
         .no { background: #e74c3c; }
 
         .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .status-pill { font-size: 12px; padding: 4px 8px; border-radius: 20px; background: #eee; font-family: sans-serif; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Card Editor</h3>
-        <textarea id="inputText" placeholder="Paste words here..."></textarea>
+        <h3 style="font-family: sans-serif;">Smart Pace Editor</h3>
+        <textarea id="inputText" placeholder="Enter words or sentences..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -103,7 +103,7 @@
     <div id="quiz">
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
-            <div style="font-family: sans-serif; font-size: 14px; font-weight: bold;">🔊 Natural Tone</div>
+            <div id="modePill" class="status-pill">Normal</div>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
         <div id="card-box"><div id="card"></div></div>
@@ -120,14 +120,14 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const saved = localStorage.getItem("natural_tone_save");
+        const saved = localStorage.getItem("smart_pace_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         speechSynthesis.cancel();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("natural_tone_save", text);
+        localStorage.setItem("smart_pace_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -145,22 +145,36 @@
         }
         const currentText = list[idx];
         const cardDisplay = document.getElementById("card");
+        const pill = document.getElementById("modePill");
+        
         cardDisplay.innerText = currentText;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
         
+        // Visual indicator for the smart logic
+        if (currentText.length > 4) {
+            pill.innerText = "Slow (Long)";
+            pill.style.background = "#fff3cd";
+        } else {
+            pill.innerText = "Normal (Short)";
+            pill.style.background = "#d1e7dd";
+        }
+
         if (currentText.length > 10) cardDisplay.style.fontSize = "28px";
         else if (currentText.length > 4) cardDisplay.style.fontSize = "50px";
         else cardDisplay.style.fontSize = "85px";
     }
 
-    function speakNatural(text) {
+    function speakSmart(text) {
         speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-CN';
         
-        // 0.85 is slow enough to be clear, but fast enough to keep the right tones
-        msg.rate = 0.85; 
-        msg.pitch = 1.0;
+        // THE SMART LOGIC
+        if (text.length > 4) {
+            msg.rate = 0.5; // Very slow for sentences
+        } else {
+            msg.rate = 1.0; // Natural speed for short words
+        }
 
         msg.onend = () => {
             idx++; 
@@ -172,7 +186,7 @@
 
     function ans(correct) {
         if (correct) ok++; else no++;
-        speakNatural(list[idx]);
+        speakSmart(list[idx]);
     }
 
     function stop() {
