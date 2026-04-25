@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Natural Speed Flashcards</title>
+    <title>Paced Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -94,7 +94,7 @@
 <div id="app-container">
     <div id="setup">
         <h3 style="font-family: sans-serif;">Card Editor</h3>
-        <textarea id="inputText" placeholder="Paste your words or sentences here..."></textarea>
+        <textarea id="inputText" placeholder="Enter cards here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -105,7 +105,7 @@
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
-                <span>🔊 Real Speed</span>
+                <span>🔊 Clear Delay</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
@@ -122,15 +122,16 @@
     let list = [];
     let idx = 0;
     let ok = 0, no = 0;
+    let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("fast_guy_save");
+        const saved = localStorage.getItem("delay_kaiti_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("fast_guy_save", text);
+        localStorage.setItem("delay_kaiti_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -142,7 +143,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Done!\n✅ ${ok} Correct | ❌ ${no} Wrong`);
+            alert(`✅ ${ok} Correct | ❌ ${no} Wrong`);
             stop();
             return;
         }
@@ -159,33 +160,49 @@
         window.scrollTo(0, 0);
     }
 
-    function speak(text) {
+    // Logic for Character + 0.25s Delay
+    async function speakWithDelay(text) {
         if (!document.getElementById("sound").checked) {
             idx++; show();
             return;
         }
         
+        isSpeaking = true;
         speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'zh-CN';
         
-        // --- NATURAL SPEED (1.1 - 1.2 is typical human speed) ---
-        msg.rate = 1.1; 
+        const chars = Array.from(text);
         
-        msg.onend = () => {
+        for (let char of chars) {
+            if (!isSpeaking) break;
+
+            const msg = new SpeechSynthesisUtterance(char);
+            msg.lang = 'zh-CN';
+            msg.rate = 0.95; // 15% slower than "normal guy"
+            
+            await new Promise(resolve => {
+                msg.onend = resolve;
+                speechSynthesis.speak(msg);
+            });
+
+            // THE 0.25 SEC DELAY
+            await new Promise(r => setTimeout(r, 250));
+        }
+        
+        if (isSpeaking) {
+            isSpeaking = false;
             idx++; 
             show();
-        };
-        
-        speechSynthesis.speak(msg);
+        }
     }
 
     function ans(correct) {
+        if (isSpeaking) return; 
         if (correct) ok++; else no++;
-        speak(list[idx]);
+        speakWithDelay(list[idx]);
     }
 
     function stop() {
+        isSpeaking = false;
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
