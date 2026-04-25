@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Precision Paced Flashcards</title>
+    <title>Smart Audio Pro</title>
     <style>
         html, body {
             overflow-y: auto; margin: 0; padding: 0;
@@ -62,7 +62,6 @@
             width: 100%; padding: 20px; font-size: 24px; font-weight: bold;
             background: #f0f0f0; border: 1px solid #ccc; border-radius: 15px;
             cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
-            -webkit-user-select: none;
         }
 
         .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
@@ -73,8 +72,8 @@
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Paced Audio Mode</h3>
-        <textarea id="inputText" placeholder="Paste your text here..."></textarea>
+        <h3 style="font-family: sans-serif;">Smart Audio V3</h3>
+        <textarea id="inputText" placeholder="Enter cards here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -86,15 +85,13 @@
             <div id="score" class="score-box">0 / 0</div>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
-        <div id="card-box">
-            <div id="card"></div>
-        </div>
+        <div id="card-box"><div id="card"></div></div>
         <div id="controls">
             <div class="answer-row">
                 <button class="btn-action no" onclick="ans(false)">❌</button>
                 <button class="btn-action yes" onclick="ans(true)">✅</button>
             </div>
-            <button class="btn-listen" onclick="listenNow()">🔊 LISTEN</button>
+            <button class="btn-listen" id="listenBtn" onclick="listenNow()">🔊 LISTEN</button>
         </div>
     </div>
 </div>
@@ -106,14 +103,14 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("precision_audio_save");
+        const saved = localStorage.getItem("smart_audio_v3");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
-        stopSpeech();
+        resetSpeech();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("precision_audio_save", text);
+        localStorage.setItem("smart_audio_v3", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -125,7 +122,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Finished!\n✅ Correct: ${ok}\n❌ Wrong: ${no}`);
+            alert(`Session Complete!\n✅ ${ok} Correct\n❌ ${no} Wrong`);
             stop();
             return;
         }
@@ -143,47 +140,52 @@
         if (isSpeaking) return;
         const text = list[idx];
         isSpeaking = true;
+        
         speechSynthesis.cancel();
-
+        
+        // Short: Natural Pace
         if (text.length <= 4) {
-            // Short: Normal speed (e.g. 哥哥)
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-CN';
-            msg.rate = 1.0;
+            msg.rate = 1.0; 
             msg.onend = () => { isSpeaking = false; };
             speechSynthesis.speak(msg);
-        } else {
-            // Long: Character-by-character with the 0.05s delay
+        } 
+        // Long: Slow & Clear Hybrid
+        else {
             const chars = Array.from(text);
-            for (let char of chars) {
+            for (let i = 0; i < chars.length; i++) {
                 if (!isSpeaking) break;
-                const msg = new SpeechSynthesisUtterance(char);
+                const msg = new SpeechSynthesisUtterance(chars[i]);
                 msg.lang = 'zh-CN';
-                msg.rate = 1.0;
+                msg.rate = 0.95; // Slightly slower for clarity
+                
                 await new Promise(resolve => {
                     msg.onend = resolve;
                     speechSynthesis.speak(msg);
                 });
-                await new Promise(r => setTimeout(r, 50)); // 0.05s delay
+                
+                // The 0.05s Delay between characters
+                await new Promise(r => setTimeout(r, 50));
             }
             isSpeaking = false;
         }
     }
 
     function ans(correct) {
-        stopSpeech();
+        resetSpeech();
         if (correct) ok++; else no++;
         idx++;
         show();
     }
 
-    function stopSpeech() {
+    function resetSpeech() {
         isSpeaking = false;
         speechSynthesis.cancel();
     }
 
     function stop() {
-        stopSpeech();
+        resetSpeech();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
     }
