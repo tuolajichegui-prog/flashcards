@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quick Paced Flashcards</title>
+    <title>Snappy Paced Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -94,7 +94,7 @@
 <div id="app-container">
     <div id="setup">
         <h3 style="font-family: sans-serif;">Card Editor</h3>
-        <textarea id="inputText" placeholder="Enter cards here..."></textarea>
+        <textarea id="inputText" placeholder="Paste your words here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -105,7 +105,7 @@
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
-                <span>🔊 0.15s Delay</span>
+                <span>🔊 0.1s Delay</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
@@ -125,13 +125,13 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("quick_delay_save");
+        const saved = localStorage.getItem("snappy_delay_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("quick_delay_save", text);
+        localStorage.setItem("snappy_delay_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -168,7 +168,6 @@
         
         isSpeaking = true;
         speechSynthesis.cancel();
-        
         const chars = Array.from(text);
         
         for (let char of chars) {
@@ -179,34 +178,3 @@
             msg.rate = 0.95; 
             
             await new Promise(resolve => {
-                msg.onend = resolve;
-                speechSynthesis.speak(msg);
-            });
-
-            // THE 0.15 SEC DELAY
-            await new Promise(r => setTimeout(r, 150));
-        }
-        
-        if (isSpeaking) {
-            isSpeaking = false;
-            idx++; 
-            show();
-        }
-    }
-
-    function ans(correct) {
-        if (isSpeaking) return; 
-        if (correct) ok++; else no++;
-        speakWithDelay(list[idx]);
-    }
-
-    function stop() {
-        isSpeaking = false;
-        speechSynthesis.cancel();
-        document.getElementById("setup").style.display = "flex";
-        document.getElementById("quiz").style.display = "none";
-        window.scrollTo(0, 0);
-    }
-</script>
-</body>
-</html>
