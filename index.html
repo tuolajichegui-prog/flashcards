@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Paced Flashcards</title>
+    <title>Quick Paced Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -105,7 +105,7 @@
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
-                <span>🔊 Clear Delay</span>
+                <span>🔊 0.15s Delay</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
@@ -125,13 +125,13 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("delay_kaiti_save");
+        const saved = localStorage.getItem("quick_delay_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("delay_kaiti_save", text);
+        localStorage.setItem("quick_delay_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -160,7 +160,6 @@
         window.scrollTo(0, 0);
     }
 
-    // Logic for Character + 0.25s Delay
     async function speakWithDelay(text) {
         if (!document.getElementById("sound").checked) {
             idx++; show();
@@ -177,15 +176,15 @@
 
             const msg = new SpeechSynthesisUtterance(char);
             msg.lang = 'zh-CN';
-            msg.rate = 0.95; // 15% slower than "normal guy"
+            msg.rate = 0.95; 
             
             await new Promise(resolve => {
                 msg.onend = resolve;
                 speechSynthesis.speak(msg);
             });
 
-            // THE 0.25 SEC DELAY
-            await new Promise(r => setTimeout(r, 250));
+            // THE 0.15 SEC DELAY
+            await new Promise(r => setTimeout(r, 150));
         }
         
         if (isSpeaking) {
