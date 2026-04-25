@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Slow Flashcards</title>
+    <title>Perfect Pace Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -105,7 +105,7 @@
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
-                <span>🔊 Slower Voice</span>
+                <span>🔊 Paced Voice</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
@@ -125,13 +125,13 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("super_slow_save");
+        const saved = localStorage.getItem("paced_kaiti_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("super_slow_save", text);
+        localStorage.setItem("paced_kaiti_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -155,8 +155,8 @@
         window.scrollTo(0, 0);
     }
 
-    // Ultra Slow Reading Logic
-    async function speakSlowly(text) {
+    // "A bit faster" but perfectly spaced character reading
+    async function speakPaced(text) {
         if (!document.getElementById("sound").checked) {
             idx++; show();
             return;
@@ -171,16 +171,15 @@
 
             const msg = new SpeechSynthesisUtterance(char);
             msg.lang = 'zh-CN';
-            msg.rate = 0.5;  // VERY slow speed
-            msg.pitch = 1.0; // Normal pitch
+            msg.rate = 0.8;  // A bit faster than the previous super-slow version
             
             await new Promise(resolve => {
                 msg.onend = resolve;
                 speechSynthesis.speak(msg);
             });
 
-            // Longer pause between characters (600ms)
-            await new Promise(r => setTimeout(r, 600));
+            // Moderate pause (400ms) between characters to keep the pace steady
+            await new Promise(r => setTimeout(r, 400));
         }
         
         if (isSpeaking) {
@@ -191,9 +190,9 @@
     }
 
     function ans(correct) {
-        if (isSpeaking) return; // Prevent double clicks during speech
+        if (isSpeaking) return; 
         if (correct) ok++; else no++;
-        speakSlowly(list[idx]);
+        speakPaced(list[idx]);
     }
 
     function stop() {
