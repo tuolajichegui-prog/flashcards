@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3-Level Smart Flashcards</title>
+    <title>Precision 3-Level Flashcards</title>
     <style>
         html, body {
             overflow-y: auto; margin: 0; padding: 0;
@@ -74,7 +74,7 @@
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">3-Level Audio Editor</h3>
+        <h3 style="font-family: sans-serif;">Precision 3-Level Audio</h3>
         <textarea id="inputText" placeholder="Enter cards here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
@@ -106,14 +106,14 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("three_level_save");
+        const saved = localStorage.getItem("precision_3_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         resetSpeech();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("three_level_save", text);
+        localStorage.setItem("precision_3_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -136,15 +136,14 @@
         cardDisplay.innerText = text;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
         
-        // UI Feedback for levels
         if (text.length <= 4) {
             levelTag.innerText = "Lvl 1: Natural";
             levelTag.style.background = "#d1e7dd";
         } else if (text.length <= 9) {
-            levelTag.innerText = "Lvl 2: 0.01s";
+            levelTag.innerText = "Lvl 2: 0.006s";
             levelTag.style.background = "#fff3cd";
         } else {
-            levelTag.innerText = "Lvl 3: 0.02s";
+            levelTag.innerText = "Lvl 3: 0.010s";
             levelTag.style.background = "#f8d7da";
         }
 
@@ -160,15 +159,14 @@
         speechSynthesis.cancel();
 
         if (text.length <= 4) {
-            // LEVEL 1: Natural
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-CN';
             msg.rate = 1.0;
             msg.onend = () => { isSpeaking = false; };
             speechSynthesis.speak(msg);
         } else {
-            // Determing delay based on length
-            const delay = (text.length > 9) ? 20 : 10;
+            // Updated Level 2 (6ms) and Level 3 (10ms)
+            const delay = (text.length > 9) ? 10 : 6;
             
             const chars = Array.from(text);
             for (let char of chars) {
