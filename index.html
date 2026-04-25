@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Perfect Pace Flashcards</title>
+    <title>Natural Speed Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -62,7 +62,7 @@
         }
 
         #card-box {
-            padding: 50px 15px;
+            padding: 40px 15px;
             background: #fafafa;
             border-radius: 15px;
             border: 1px solid #eee;
@@ -94,7 +94,7 @@
 <div id="app-container">
     <div id="setup">
         <h3 style="font-family: sans-serif;">Card Editor</h3>
-        <textarea id="inputText" placeholder="Paste your words here..."></textarea>
+        <textarea id="inputText" placeholder="Enter words or sentences..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -105,7 +105,7 @@
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
-                <span>🔊 Paced Voice</span>
+                <span>🔊 Voice</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
@@ -122,16 +122,15 @@
     let list = [];
     let idx = 0;
     let ok = 0, no = 0;
-    let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("paced_kaiti_save");
+        const saved = localStorage.getItem("natural_speed_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("paced_kaiti_save", text);
+        localStorage.setItem("natural_speed_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -151,52 +150,45 @@
         const cardDisplay = document.getElementById("card");
         cardDisplay.innerText = currentText;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
-        cardDisplay.style.fontSize = currentText.length > 8 ? "30px" : (currentText.length > 4 ? "45px" : "80px");
+        
+        // Auto-sizing text
+        if (currentText.length > 15) cardDisplay.style.fontSize = "24px";
+        else if (currentText.length > 8) cardDisplay.style.fontSize = "35px";
+        else if (currentText.length > 4) cardDisplay.style.fontSize = "55px";
+        else cardDisplay.style.fontSize = "85px";
+
         window.scrollTo(0, 0);
     }
 
-    // "A bit faster" but perfectly spaced character reading
-    async function speakPaced(text) {
+    function speakNormally(text) {
         if (!document.getElementById("sound").checked) {
             idx++; show();
             return;
         }
         
-        isSpeaking = true;
         speechSynthesis.cancel();
-        const chars = Array.from(text);
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'zh-CN';
         
-        for (let char of chars) {
-            if (!isSpeaking) break;
-
-            const msg = new SpeechSynthesisUtterance(char);
-            msg.lang = 'zh-CN';
-            msg.rate = 0.8;  // A bit faster than the previous super-slow version
-            
-            await new Promise(resolve => {
-                msg.onend = resolve;
-                speechSynthesis.speak(msg);
-            });
-
-            // Moderate pause (400ms) between characters to keep the pace steady
-            await new Promise(r => setTimeout(r, 400));
-        }
+        // --- THE SPEED FIX ---
+        // 0.9 is just slightly slower than normal, 
+        // perfect for understanding sentences without waiting forever.
+        msg.rate = 0.9; 
         
-        if (isSpeaking) {
-            isSpeaking = false;
+        msg.onend = () => {
             idx++; 
             show();
-        }
+        };
+        
+        speechSynthesis.speak(msg);
     }
 
     function ans(correct) {
-        if (isSpeaking) return; 
         if (correct) ok++; else no++;
-        speakPaced(list[idx]);
+        speakNormally(list[idx]);
     }
 
     function stop() {
-        isSpeaking = false;
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
