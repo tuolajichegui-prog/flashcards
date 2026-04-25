@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clean Kaiti Cards</title>
+    <title>Universal Kaiti Cards</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
     <style>
         body { 
-            /* Priority: Standard System Kaiti -> Noto Serif SC (Textbook style) */
-            font-family: "KaiTi", "楷体", "STKaiti", "Noto Serif SC", serif; 
+            /* PC will use its KaiTi, Phone will download ZCOOL XiaoWei */
+            font-family: "KaiTi", "楷体", "STKaiti", 'ZCOOL XiaoWei', serif; 
             text-align: center; 
             margin: 0;
             background-color: #ffffff;
@@ -31,9 +31,18 @@
             border: none; background-color: #000; color: white; font-weight: bold;
         }
 
-        /* --- QUIZ PAGE --- */
-        #quiz { display: none; flex-direction: column; height: 100vh; padding: 15px; }
-        #header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        /* --- QUIZ PAGE (EVERYTHING AT TOP) --- */
+        #quiz { display: none; height: 100vh; flex-direction: column; padding: 15px; box-sizing: border-box; }
+        
+        #header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 10px;
+        }
         
         #card { 
             font-size: 45vw; 
@@ -41,9 +50,7 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            /* Forces the clean textbook look */
-            font-family: "KaiTi", "楷体", "STKaiti", "Noto Serif SC", serif;
-            font-weight: 700; 
+            font-family: inherit;
         }
 
         #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
@@ -90,13 +97,13 @@
     let ok = 0, no = 0;
 
     window.onload = () => {
-        const s = localStorage.getItem("clean_kaiti_save");
+        const s = localStorage.getItem("universal_kaiti_save");
         if (s) document.getElementById("inputText").value = s;
     };
 
     function go() {
         const t = document.getElementById("inputText").value;
-        localStorage.setItem("clean_kaiti_save", t);
+        localStorage.setItem("universal_kaiti_save", t);
         list = t.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
