@@ -5,19 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KaiTi Flashcards</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --primary: #4A90E2;
             --success: #2ecc71;
             --danger: #e74c3c;
-            --bg: #f0f2f5;
+            --bg: #ffffff;
         }
 
         body { 
-            /* Priority 1: Google Calligraphy, Priority 2: System Kaiti */
-            font-family: 'Ma Shan Zheng', "KaiTi", "楷体", "STKaiti", serif; 
+            font-family: 'ZCOOL XiaoWei', "KaiTi", "楷体", "STKaiti", serif; 
             text-align: center; 
             background: var(--bg); 
             margin: 0;
@@ -37,7 +36,7 @@
 
         textarea { 
             width: 100%; 
-            height: 45vh;
+            height: 40vh;
             font-size: 22px; 
             font-family: inherit; 
             padding: 15px; 
@@ -47,83 +46,84 @@
         }
 
         .setup-controls {
-            margin: 20px 0;
+            margin: 15px 0;
             font-family: sans-serif;
         }
 
         .btn-start { 
-            padding: 20px; 
+            padding: 18px; 
             font-size: 22px; 
             border-radius: 15px; 
             border: none; 
             background: var(--primary); 
             color: white; 
             font-weight: bold;
-            touch-action: manipulation;
         }
 
-        /* --- QUIZ PAGE --- */
+        /* --- QUIZ PAGE (Everything moved UP) --- */
         #quiz { 
             display: none; 
             height: 100vh; 
             flex-direction: column; 
-            justify-content: space-between;
-            padding: 15px;
+            padding: 10px;
             box-sizing: border-box;
+        }
+
+        #top-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
         }
 
         #quiz-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            padding: 12px 18px;
-            border-radius: 12px;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
             font-family: sans-serif;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #answer-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
 
         .voice-control {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: #eee;
-            padding: 8px 15px;
-            border-radius: 25px;
+            gap: 5px;
+            font-family: sans-serif;
         }
 
-        .voice-control input { width: 25px; height: 25px; }
+        .voice-control input { width: 22px; height: 22px; }
 
-        /* The Main Kaiti Display */
+        /* The BIG Character (Moved Down) */
         #card { 
-            font-size: 32vw; /* Very large for clarity */
+            font-size: 35vw; 
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Ma Shan Zheng', "KaiTi", "楷体", "STKaiti", serif;
+            font-family: inherit;
             color: #000;
+            margin-top: -20px; /* Pulls it up slightly from the absolute bottom */
         }
 
-        #controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding-bottom: 5px;
-        }
-
-        .btn-correct { background: var(--success); color: white; padding: 25px; border-radius: 15px; border: none; font-size: 35px; }
-        .btn-incorrect { background: var(--danger); color: white; padding: 25px; border-radius: 15px; border: none; font-size: 35px; }
+        /* Buttons */
+        .btn-correct { background: var(--success); color: white; padding: 15px; border-radius: 12px; border: none; font-size: 28px; }
+        .btn-incorrect { background: var(--danger); color: white; padding: 15px; border-radius: 12px; border: none; font-size: 28px; }
         
         .btn-stop { 
             background: #6c757d; 
-            grid-column: span 2; 
-            padding: 12px; 
+            padding: 8px; 
             color: white;
-            font-size: 16px;
-            border-radius: 10px;
+            font-size: 14px;
+            border-radius: 8px;
             border: none;
-            margin-top: 10px;
             font-family: sans-serif;
         }
     </style>
@@ -132,33 +132,31 @@
 
 <div id="setup">
     <h2 style="font-family: sans-serif;">Flashcard Editor</h2>
-    <textarea id="inputText" placeholder="Enter words here..."></textarea>
-    
+    <textarea id="inputText" placeholder="Enter words..."></textarea>
     <div class="setup-controls">
-        <label style="font-size: 20px;">
-            <input type="checkbox" id="shuffleToggle" style="width: 20px; height: 20px;"> Shuffle Cards
-        </label>
+        <label><input type="checkbox" id="shuffleToggle"> Shuffle</label>
     </div>
-    
-    <button class="btn-start" onclick="startQuiz()">▶ START QUIZ</button>
+    <button class="btn-start" onclick="startQuiz()">▶ START</button>
 </div>
 
 <div id="quiz">
-    <div id="quiz-header">
-        <div id="score" style="font-weight:bold">0 / 0</div>
-        <label class="voice-control">
-            <span style="font-weight: bold;">🔊 Voice</span>
-            <input type="checkbox" id="soundToggle" checked>
-        </label>
+    <div id="top-controls">
+        <div id="quiz-header">
+            <div id="score" style="font-weight:bold">0 / 0</div>
+            <label class="voice-control">
+                <span>🔊 Voice</span>
+                <input type="checkbox" id="soundToggle" checked>
+            </label>
+            <button class="btn-stop" onclick="stopQuiz()">⏹ EXIT</button>
+        </div>
+
+        <div id="answer-btns">
+            <button id="incorrectBtn" class="btn-incorrect" onclick="answer(false)">❌</button>
+            <button id="correctBtn" class="btn-correct" onclick="answer(true)">✅</button>
+        </div>
     </div>
 
     <div id="card"></div>
-    
-    <div id="controls">
-        <button id="incorrectBtn" class="btn-incorrect" onclick="answer(false)">❌</button>
-        <button id="correctBtn" class="btn-correct" onclick="answer(true)">✅</button>
-        <button class="btn-stop" onclick="stopQuiz()">⏹ EXIT</button>
-    </div>
 </div>
 
 <script>
