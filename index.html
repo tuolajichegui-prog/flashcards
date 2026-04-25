@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fixed Flashcards</title>
+    <title>Natural Paced Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -105,7 +105,7 @@
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
             <label class="voice-box">
-                <span>🔊 0.07s Delay</span>
+                <span>🔊 0.05s Gap</span>
                 <input type="checkbox" id="sound" checked>
             </label>
             <button class="btn-exit" onclick="stop()">EXIT</button>
@@ -125,28 +125,18 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("fixed_btn_save");
+        const saved = localStorage.getItem("natural_gap_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
-        // FORCE RESET SPEECH ON START
         isSpeaking = false;
         speechSynthesis.cancel();
-
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("fixed_btn_save", text);
-        
+        localStorage.setItem("natural_gap_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
-        if (list.length === 0) {
-            alert("Please enter some words first!");
-            return;
-        }
-
-        if (document.getElementById("shuffle").checked) {
-            list.sort(() => Math.random() - 0.5);
-        }
-
+        if (list.length === 0) return;
+        if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
         idx = 0; ok = 0; no = 0;
         document.getElementById("setup").style.display = "none";
         document.getElementById("quiz").style.display = "flex";
@@ -168,11 +158,9 @@
         else if (currentText.length > 8) cardDisplay.style.fontSize = "32px";
         else if (currentText.length > 4) cardDisplay.style.fontSize = "50px";
         else cardDisplay.style.fontSize = "80px";
-
-        window.scrollTo(0, 0);
     }
 
-    async function speakWithDelay(text) {
+    async function speakWithNaturalGap(text) {
         if (!document.getElementById("sound").checked) {
             idx++; show();
             return;
@@ -187,14 +175,16 @@
 
             const msg = new SpeechSynthesisUtterance(char);
             msg.lang = 'zh-CN';
-            msg.rate = 0.95; 
+            // Set rate to 1.0 so the voice doesn't sound robotic/stretched
+            msg.rate = 1.0; 
             
             await new Promise(resolve => {
                 msg.onend = resolve;
                 speechSynthesis.speak(msg);
             });
 
-            await new Promise(r => setTimeout(r, 70));
+            // The 0.05s silent delay between characters
+            await new Promise(r => setTimeout(r, 50));
         }
         
         if (isSpeaking) {
@@ -207,7 +197,7 @@
     function ans(correct) {
         if (isSpeaking) return; 
         if (correct) ok++; else no++;
-        speakWithDelay(list[idx]);
+        speakWithNaturalGap(list[idx]);
     }
 
     function stop() {
@@ -215,7 +205,6 @@
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
-        window.scrollTo(0, 0);
     }
 </script>
 </body>
