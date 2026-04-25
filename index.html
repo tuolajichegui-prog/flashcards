@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaiti Flashcards</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+    <title>Kaiti Flashcards Pro</title>
     <style>
         :root {
             --primary: #4A90E2;
@@ -16,54 +13,59 @@
         }
 
         body { 
-            font-family: "KaiTi", "楷体", "STKaiti", "华文楷体", serif; 
+            /* Microsoft Word Kaiti Font Stack */
+            font-family: "KaiTi", "楷体", "STKaiti", "华文楷体", "NSimSun", serif; 
             text-align: center; 
             background: var(--bg); 
             margin: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden; /* Prevents bouncing on mobile */
         }
 
-        /* Responsive Setup Area */
+        /* Moves controls higher up */
         #setup { 
-            padding: 20px; 
+            padding: 10px 20px; 
             flex: 1;
             display: flex;
             flex-direction: column;
+            justify-content: flex-start; /* Aligns content to top */
         }
+
+        h2 { margin: 5px 0; font-size: 1.5rem; }
 
         textarea { 
             width: 100%; 
-            flex: 1;
+            height: 40vh; /* Takes up less space to keep buttons high */
             font-size: 18px; 
             font-family: inherit; 
-            padding: 15px; 
-            border-radius: 12px; 
+            padding: 12px; 
+            border-radius: 10px; 
             border: 2px solid #ddd;
             box-sizing: border-box;
-            margin-bottom: 10px;
         }
 
-        /* Big Mobile Buttons */
+        .settings-row {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-family: sans-serif;
+            font-weight: bold;
+        }
+
         button { 
-            padding: 18px; 
-            font-size: 20px; 
-            margin: 5px; 
-            cursor: pointer; 
+            padding: 15px; 
+            font-size: 18px; 
             border-radius: 12px; 
             border: none; 
             background: var(--primary); 
             color: white; 
             font-weight: bold;
-            touch-action: manipulation; /* Faster clicks on mobile */
+            touch-action: manipulation;
         }
 
-        button:active { transform: scale(0.98); opacity: 0.9; }
-        button:disabled { opacity: 0.3; }
-
-        /* Quiz Layout */
+        /* Quiz Styles */
         #quiz { 
             display: none; 
             height: 100vh; 
@@ -74,57 +76,48 @@
         }
 
         #card { 
-            font-size: 25vw; /* Scales with screen width */
+            font-size: 20vw; 
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            word-break: break-all;
-            padding: 10px;
         }
-
-        #score { font-size: 16px; font-family: sans-serif; color: #666; padding-top: 10px; }
 
         #controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            padding-bottom: 20px;
+            padding-bottom: 10px;
         }
 
         .btn-correct { background: var(--success); }
         .btn-incorrect { background: var(--danger); }
-        
-        .stop-link {
-            color: #999;
-            text-decoration: none;
-            font-size: 14px;
-            margin-bottom: 10px;
-            font-family: sans-serif;
-        }
+        .btn-stop { background: #95a5a6; grid-column: span 2; padding: 10px; }
     </style>
 </head>
 <body>
 
 <div id="setup">
-    <h2 style="margin-top:0">Flashcard Setup</h2>
-    <textarea id="inputText" placeholder="Line 1&#10;Line 2..."></textarea>
-    <div style="margin: 10px 0;">
-        <label style="font-family: sans-serif; font-size: 18px;">
-            <input type="checkbox" id="shuffleToggle" style="transform: scale(1.5);"> Shuffle
-        </label>
+    <h2>Flashcard Editor</h2>
+    <textarea id="inputText" placeholder="Enter text..."></textarea>
+    
+    <div class="settings-row">
+        <label><input type="checkbox" id="shuffleToggle"> Shuffle</label>
+        <label><input type="checkbox" id="soundToggle" checked> Read Aloud</label>
     </div>
+    
     <button onclick="startQuiz()">▶ START QUIZ</button>
 </div>
 
 <div id="quiz">
-    <div id="score"></div>
+    <div id="score" style="font-family: sans-serif; color: #666;"></div>
     <div id="card"></div>
+    
     <div id="controls">
         <button id="incorrectBtn" class="btn-incorrect" onclick="answer(false)">❌</button>
         <button id="correctBtn" class="btn-correct" onclick="answer(true)">✅</button>
+        <button class="btn-stop" onclick="stopQuiz()">⏹ STOP / PAUSE</button>
     </div>
-    <a href="#" class="stop-link" onclick="location.reload()">Reset / Back</a>
 </div>
 
 <script>
@@ -134,29 +127,36 @@
     let incorrect = 0;
 
     const flipSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-    const inputField = document.getElementById("inputText");
 
-    // Load saved text
     window.onload = () => {
-        const saved = localStorage.getItem("flashcard_data");
-        if (saved) inputField.value = saved;
+        const saved = localStorage.getItem("cards_save");
+        if (saved) document.getElementById("inputText").value = saved;
     };
 
-    inputField.addEventListener("input", () => localStorage.setItem("flashcard_data", inputField.value));
+    document.getElementById("inputText").addEventListener("input", (e) => {
+        localStorage.setItem("cards_save", e.target.value);
+    });
 
     function speak(text, callback) {
+        if (!document.getElementById("soundToggle").checked) {
+            if (callback) callback();
+            return;
+        }
         speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN';
-        utterance.rate = 0.9; // Slightly slower for clarity
         if (callback) utterance.onend = callback;
         speechSynthesis.speak(utterance);
     }
 
     function startQuiz() {
-        cards = inputField.value.split("\n").filter(line => line.trim() !== "");
+        const raw = document.getElementById("inputText").value;
+        cards = raw.split("\n").filter(line => line.trim() !== "");
         if (cards.length === 0) return;
-        if (document.getElementById("shuffleToggle").checked) cards.sort(() => Math.random() - 0.5);
+        
+        if (document.getElementById("shuffleToggle").checked) {
+            cards.sort(() => Math.random() - 0.5);
+        }
 
         currentIndex = 0; correct = 0; incorrect = 0;
         document.getElementById("setup").style.display = "none";
@@ -166,15 +166,16 @@
 
     function showCard() {
         if (currentIndex >= cards.length) {
-            alert(`Finished!\n✅ ${correct} | ❌ ${incorrect}`);
-            location.reload();
+            alert(`Final Score: ✅${correct} ❌${incorrect}`);
+            stopQuiz();
             return;
         }
-        
+
         flipSound.currentTime = 0;
         flipSound.play();
+
         document.getElementById("card").innerText = cards[currentIndex];
-        document.getElementById("score").innerText = `Card ${currentIndex + 1}/${cards.length} | ✅ ${correct} ❌ ${incorrect}`;
+        document.getElementById("score").innerText = `Card ${currentIndex + 1} / ${cards.length} | ✅ ${correct} ❌ ${incorrect}`;
         
         document.getElementById("correctBtn").disabled = false;
         document.getElementById("incorrectBtn").disabled = false;
@@ -183,24 +184,21 @@
     function answer(isCorrect) {
         document.getElementById("correctBtn").disabled = true;
         document.getElementById("incorrectBtn").disabled = true;
+        
         if (isCorrect) correct++; else incorrect++;
 
+        // Steps: 1. Speak current word (if enabled) -> 2. Next card
         speak(cards[currentIndex], () => {
             currentIndex++;
             showCard();
         });
     }
 
-    // --- SERVICE WORKER FOR OFFLINE USE ---
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            self.addEventListener('install', e => e.waitUntil(caches.open('v1').then(c => c.add(location.href))));
-            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-        `;
-        const blob = new Blob([swCode], {type: 'text/javascript'});
-        navigator.serviceWorker.register(URL.createObjectURL(blob));
+    function stopQuiz() {
+        speechSynthesis.cancel();
+        document.getElementById("setup").style.display = "flex";
+        document.getElementById("quiz").style.display = "none";
     }
 </script>
-
 </body>
 </html>
