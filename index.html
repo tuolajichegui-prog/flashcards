@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Natural Paced Flashcards</title>
+    <title>Natural Tone Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -86,7 +86,6 @@
         .no { background: #e74c3c; }
 
         .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        .voice-box { display: flex; align-items: center; gap: 5px; font-weight: bold; font-family: sans-serif; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -104,10 +103,7 @@
     <div id="quiz">
         <div id="header">
             <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
-            <label class="voice-box">
-                <span>🔊 0.05s Gap</span>
-                <input type="checkbox" id="sound" checked>
-            </label>
+            <div style="font-family: sans-serif; font-size: 14px; font-weight: bold;">🔊 Natural Tone</div>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
         <div id="card-box"><div id="card"></div></div>
@@ -122,18 +118,16 @@
     let list = [];
     let idx = 0;
     let ok = 0, no = 0;
-    let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("natural_gap_save");
+        const saved = localStorage.getItem("natural_tone_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
-        isSpeaking = false;
         speechSynthesis.cancel();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("natural_gap_save", text);
+        localStorage.setItem("natural_tone_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -154,54 +148,34 @@
         cardDisplay.innerText = currentText;
         document.getElementById("score").innerText = `${idx + 1} / ${list.length}`;
         
-        if (currentText.length > 15) cardDisplay.style.fontSize = "22px";
-        else if (currentText.length > 8) cardDisplay.style.fontSize = "32px";
+        if (currentText.length > 10) cardDisplay.style.fontSize = "28px";
         else if (currentText.length > 4) cardDisplay.style.fontSize = "50px";
-        else cardDisplay.style.fontSize = "80px";
+        else cardDisplay.style.fontSize = "85px";
     }
 
-    async function speakWithNaturalGap(text) {
-        if (!document.getElementById("sound").checked) {
-            idx++; show();
-            return;
-        }
-        
-        isSpeaking = true;
+    function speakNatural(text) {
         speechSynthesis.cancel();
-        const chars = Array.from(text);
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'zh-CN';
         
-        for (let char of chars) {
-            if (!isSpeaking) break;
+        // 0.85 is slow enough to be clear, but fast enough to keep the right tones
+        msg.rate = 0.85; 
+        msg.pitch = 1.0;
 
-            const msg = new SpeechSynthesisUtterance(char);
-            msg.lang = 'zh-CN';
-            // Set rate to 1.0 so the voice doesn't sound robotic/stretched
-            msg.rate = 1.0; 
-            
-            await new Promise(resolve => {
-                msg.onend = resolve;
-                speechSynthesis.speak(msg);
-            });
-
-            // The 0.05s silent delay between characters
-            await new Promise(r => setTimeout(r, 50));
-        }
-        
-        if (isSpeaking) {
-            isSpeaking = false;
+        msg.onend = () => {
             idx++; 
             show();
-        }
+        };
+        
+        speechSynthesis.speak(msg);
     }
 
     function ans(correct) {
-        if (isSpeaking) return; 
         if (correct) ok++; else no++;
-        speakWithNaturalGap(list[idx]);
+        speakNatural(list[idx]);
     }
 
     function stop() {
-        isSpeaking = false;
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
