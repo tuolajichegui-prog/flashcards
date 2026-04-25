@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Hybrid Flashcards</title>
+    <title>Smart Audio Flashcards</title>
     <style>
         html, body {
             overflow-y: auto; margin: 0; padding: 0;
@@ -42,12 +42,18 @@
         }
 
         #card-box {
-            padding: 40px 15px; background: #fafafa; border-radius: 15px;
-            border: 1px solid #eee; min-height: 220px;
-            display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+            padding: 30px 15px; background: #fafafa; border-radius: 15px;
+            border: 1px solid #eee; min-height: 200px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            margin-bottom: 20px;
         }
 
-        #card { font-size: 80px; line-height: 1.3; word-wrap: break-word; width: 100%; font-family: inherit; }
+        #card { font-size: 80px; line-height: 1.2; word-wrap: break-word; width: 100%; font-family: inherit; margin-bottom: 20px; }
+
+        .btn-listen {
+            background: #f0f0f0; border: 1px solid #ddd; padding: 10px 20px;
+            border-radius: 50px; font-size: 24px; cursor: pointer; width: fit-content;
+        }
 
         #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
@@ -55,15 +61,15 @@
         .yes { background: #27ae60; }
         .no { background: #e74c3c; }
         .btn-exit { background: #7f8c8d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        .pill { font-size: 11px; padding: 4px 8px; border-radius: 20px; background: #eee; font-family: sans-serif; }
+        .score-box { font-weight: bold; font-family: sans-serif; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="setup">
-        <h3 style="font-family: sans-serif;">Smart Hybrid Mode</h3>
-        <textarea id="inputText" placeholder="Enter cards here..."></textarea>
+        <h3 style="font-family: sans-serif;">Smart Listen Mode</h3>
+        <textarea id="inputText" placeholder="Paste your text here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -72,11 +78,13 @@
 
     <div id="quiz">
         <div id="header">
-            <div id="score" style="font-weight: bold; font-family: sans-serif;">0 / 0</div>
-            <div id="modeStatus" class="pill">Auto-Pacing</div>
+            <div id="score" class="score-box">0 / 0</div>
             <button class="btn-exit" onclick="stop()">EXIT</button>
         </div>
-        <div id="card-box"><div id="card"></div></div>
+        <div id="card-box">
+            <div id="card"></div>
+            <button class="btn-listen" onclick="listenNow()">🔊 Listen</button>
+        </div>
         <div id="controls">
             <button class="btn-action no" onclick="ans(false)">❌</button>
             <button class="btn-action yes" onclick="ans(true)">✅</button>
@@ -91,15 +99,14 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("smart_hybrid_save");
+        const saved = localStorage.getItem("smart_listen_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
-        isSpeaking = false;
-        speechSynthesis.cancel();
+        resetSpeech();
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("smart_hybrid_save", text);
+        localStorage.setItem("smart_listen_save", text);
         list = text.split("\n").filter(l => l.trim() !== "");
         if (list.length === 0) return;
         if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
@@ -111,7 +118,7 @@
 
     function show() {
         if (idx >= list.length) {
-            alert(`Done!\n✅ ${ok} Correct | ❌ ${no} Wrong`);
+            alert(`Session Finished!\n✅ Correct: ${ok}\n❌ Wrong: ${no}`);
             stop();
             return;
         }
@@ -123,46 +130,54 @@
         if (currentText.length > 10) cardDisplay.style.fontSize = "26px";
         else if (currentText.length > 4) cardDisplay.style.fontSize = "45px";
         else cardDisplay.style.fontSize = "80px";
+        window.scrollTo(0, 0);
     }
 
-    async function speakSmart(text) {
+    async function listenNow() {
+        if (isSpeaking) return;
+        const text = list[idx];
         isSpeaking = true;
         speechSynthesis.cancel();
-        
+
         if (text.length <= 4) {
-            // SHORT WORDS: Natural flow to keep tones perfect (like Gēge)
+            // Natural mode for short words
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-CN';
-            msg.rate = 1.0; 
-            msg.onend = () => { if (isSpeaking) { isSpeaking = false; idx++; show(); } };
+            msg.rate = 1.0;
+            msg.onend = () => { isSpeaking = false; };
             speechSynthesis.speak(msg);
         } else {
-            // LONG SENTENCES: Character-by-character with the 0.07s delay you liked
+            // Paced mode for long sentences (0.07s delay)
             const chars = Array.from(text);
             for (let char of chars) {
                 if (!isSpeaking) break;
                 const msg = new SpeechSynthesisUtterance(char);
                 msg.lang = 'zh-CN';
-                msg.rate = 1.0; // Keep natural sound, just slow down the gaps
+                msg.rate = 1.0;
                 await new Promise(resolve => {
                     msg.onend = resolve;
                     speechSynthesis.speak(msg);
                 });
                 await new Promise(r => setTimeout(r, 70));
             }
-            if (isSpeaking) { isSpeaking = false; idx++; show(); }
+            isSpeaking = false;
         }
     }
 
     function ans(correct) {
-        if (isSpeaking) return; 
+        resetSpeech(); // Kill audio immediately when answering
         if (correct) ok++; else no++;
-        speakSmart(list[idx]);
+        idx++;
+        show();
+    }
+
+    function resetSpeech() {
+        isSpeaking = false;
+        speechSynthesis.cancel();
     }
 
     function stop() {
-        isSpeaking = false;
-        speechSynthesis.cancel();
+        resetSpeech();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
     }
