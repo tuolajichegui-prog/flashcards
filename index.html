@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aesthetic Evaluation System</title>
+    <title>Component-Based Kaiti System</title>
     
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #1a1a1a;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --ui-bg: #ffffff;
+            --primary: #2d3436;
+            --success: #00b894;
+            --danger: #d63031;
+            --header-bg: #fdfdfd;
         }
 
         body { 
             font-family: 'ZCOOL XiaoWei', "KaiTi", serif; 
             text-align: center; 
-            background: #fdfdfd; 
+            background: #ffffff; 
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -27,187 +27,173 @@
         }
 
         /* --- EDITOR SCREEN --- */
-        #setup { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        #setup { padding: 25px; flex: 1; display: flex; flex-direction: column; }
         textarea { 
-            width: 100%; flex: 0.6; font-size: 20px; font-family: inherit; 
-            padding: 15px; border: 1px solid #ddd; border-radius: 8px; outline: none;
+            width: 100%; flex: 0.5; font-size: 22px; font-family: inherit; 
+            padding: 15px; border: 2px solid #eee; border-radius: 12px; outline: none;
+            background: #fafafa;
         }
-        .btn-main { 
-            margin-top: 20px; padding: 18px; background: var(--primary); 
-            color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold;
+        .btn-start { 
+            margin-top: 25px; padding: 20px; background: var(--primary); 
+            color: white; border: none; border-radius: 15px; font-size: 22px; font-weight: bold;
         }
 
-        /* --- EVALUATION QUIZ (TOP-HEAVY UI) --- */
-        #quiz { display: none; height: 100vh; flex-direction: column; padding: 10px; box-sizing: border-box; }
+        /* --- TOP-MOUNTED UI (Quiz Mode) --- */
+        #quiz { display: none; height: 100vh; flex-direction: column; box-sizing: border-box; }
 
-        /* Scoring Dashboard at the TOP */
-        #eval-dashboard {
+        #ui-stack {
+            width: 100%;
+            background: var(--header-bg);
+            padding: 15px;
+            border-bottom: 1px solid #eee;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            width: 100%;
-            background: var(--ui-bg);
-            padding: 15px;
-            border-bottom: 2px solid #eee;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             z-index: 100;
         }
 
-        #stat-bar {
+        #meta-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-family: sans-serif;
-            font-size: 14px;
-            color: #666;
+            color: #636e72;
+            font-size: 15px;
         }
 
-        #action-row {
+        #interaction-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
-        /* The Evaluation Buttons */
-        .eval-btn { 
-            padding: 15px; border: none; border-radius: 12px; font-size: 28px; color: white;
-            transition: transform 0.1s; touch-action: manipulation;
+        /* Large Action Buttons */
+        .btn-action { 
+            padding: 15px; border: none; border-radius: 12px; font-size: 32px; color: white;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.1); touch-action: manipulation;
         }
-        .eval-btn:active { transform: scale(0.95); }
-        .pass { background: var(--success); box-shadow: 0 4px #1e8449; }
-        .fail { background: var(--danger); box-shadow: 0 4px #c0392b; }
+        .pass { background: var(--success); }
+        .fail { background: var(--danger); }
 
-        .voice-toggle {
+        .audio-pill {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            background: #f1f2f6;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-weight: bold;
-            color: #333;
         }
-        .voice-toggle input { width: 20px; height: 20px; }
+        .audio-pill input { width: 22px; height: 22px; }
 
-        /* THE MODEL CHARACTER (Centered in the 'Fusion' Area) */
-        #display-area {
+        /* THE CHARACTER DISPLAY (Optimized for component viewing) */
+        #stage {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
+            background: #ffffff;
         }
 
-        #character { 
-            font-size: 42vw; 
+        #char-display { 
+            font-size: 45vw; 
             font-family: inherit;
-            color: #000;
+            color: #2d3436;
             line-height: 1;
-            z-index: 1;
         }
 
-        /* Background Grid mimicking the multi-scale fusion evaluation */
-        #grid {
-            position: absolute;
-            width: 80vw;
-            height: 80vw;
-            border: 1px solid #ffecec;
-            background-image: 
-                linear-gradient(to right, #ffecec 1px, transparent 1px),
-                linear-gradient(to bottom, #ffecec 1px, transparent 1px);
-            background-size: 50% 50%;
-            z-index: 0;
-        }
-
-        .btn-exit { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; color: #999; }
+        .btn-exit { background: none; border: 1px solid #dfe6e9; padding: 4px 10px; border-radius: 6px; color: #b2bec3; }
     </style>
 </head>
 <body>
 
 <div id="setup">
-    <h2 style="font-family: sans-serif; letter-spacing: 1px;">Aesthetic Analysis System</h2>
-    <textarea id="inputText" placeholder="Input character string for evaluation..."></textarea>
-    <div style="margin: 15px 0; font-family: sans-serif;">
-        <label><input type="checkbox" id="shuffleToggle"> Randomize sequence</label>
+    <h2 style="font-family: sans-serif; color: #2d3436;">Component Library v.488B</h2>
+    <textarea id="inputText" placeholder="Input character string..."></textarea>
+    <div style="margin: 20px 0; font-family: sans-serif; font-size: 18px;">
+        <label><input type="checkbox" id="shuffleToggle" style="width: 20px; height: 20px;"> Shuffle Database</label>
     </div>
-    <button class="btn-main" onclick="startApp()">INITIALIZE SYSTEM</button>
+    <button class="btn-start" onclick="initSystem()">GENERATE LIBRARY</button>
 </div>
 
 <div id="quiz">
-    <div id="eval-dashboard">
-        <div id="stat-bar">
-            <span id="counter" style="font-weight: bold; color: #000;">ID: 0/0</span>
-            <label class="voice-toggle">
-                <span>AUDIO</span>
+    <div id="ui-stack">
+        <div id="meta-info">
+            <span id="counter">IDX: 0 / 0</span>
+            <label class="audio-pill">
+                <span>🔊 VOICE</span>
                 <input type="checkbox" id="soundToggle" checked>
             </label>
-            <button class="btn-exit" onclick="exitApp()">EXIT</button>
+            <button class="btn-exit" onclick="resetSystem()">RESET</button>
         </div>
 
-        <div id="action-row">
-            <button id="failBtn" class="eval-btn fail" onclick="handleInput(false)">✘</button>
-            <button id="passBtn" class="eval-btn pass" onclick="handleInput(true)">✔</button>
+        <div id="interaction-row">
+            <button id="failBtn" class="btn-action fail" onclick="process(false)">❌</button>
+            <button id="passBtn" class="btn-action pass" onclick="process(true)">✅</button>
         </div>
     </div>
 
-    <div id="display-area">
-        <div id="grid"></div>
-        <div id="character"></div>
+    <div id="stage">
+        <div id="char-display"></div>
     </div>
 </div>
 
 <script>
-    let list = [];
-    let idx = 0;
-    let score = { ok: 0, no: 0 };
-    const sfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+    let db = [];
+    let currentPos = 0;
+    let results = { ok: 0, no: 0 };
+    const clickSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
 
     window.onload = () => {
-        document.getElementById("inputText").value = localStorage.getItem("eval_data") || "";
+        document.getElementById("inputText").value = localStorage.getItem("lib_data") || "";
     };
 
-    function startApp() {
+    function initSystem() {
         const text = document.getElementById("inputText").value;
-        list = text.split("\n").filter(t => t.trim() !== "");
-        if (list.length === 0) return;
-        localStorage.setItem("eval_data", text);
+        db = text.split("\n").filter(t => t.trim() !== "");
+        if (db.length === 0) return;
+        localStorage.setItem("lib_data", text);
         
-        if (document.getElementById("shuffleToggle").checked) list.sort(() => Math.random() - 0.5);
+        if (document.getElementById("shuffleToggle").checked) db.sort(() => Math.random() - 0.5);
 
-        idx = 0; score = { ok: 0, no: 0 };
+        currentPos = 0; results = { ok: 0, no: 0 };
         document.getElementById("setup").style.display = "none";
         document.getElementById("quiz").style.display = "flex";
-        render();
+        draw();
     }
 
-    function render() {
-        if (idx >= list.length) {
-            alert(`Analysis Finished\nPass: ${score.ok}\nFail: ${score.no}`);
-            exitApp();
+    function draw() {
+        if (currentPos >= db.length) {
+            alert(`Database Scan Complete\nSuccess Rate: ${Math.round((results.ok / db.length) * 100)}%`);
+            resetSystem();
             return;
         }
-        sfx.currentTime = 0; sfx.play();
-        document.getElementById("character").innerText = list[idx];
-        document.getElementById("counter").innerText = `SEQ: ${idx + 1}/${list.length}`;
+        clickSfx.currentTime = 0; clickSfx.play();
+        document.getElementById("char-display").innerText = db[currentPos];
+        document.getElementById("counter").innerText = `COMPONENT: ${currentPos + 1} / ${db.length}`;
         document.getElementById("passBtn").disabled = false;
         document.getElementById("failBtn").disabled = false;
     }
 
-    function handleInput(status) {
+    function process(isOk) {
         document.getElementById("passBtn").disabled = true;
         document.getElementById("failBtn").disabled = true;
-        if (status) score.ok++; else score.no++;
+        if (isOk) results.ok++; else results.no++;
 
         if (document.getElementById("soundToggle").checked) {
             speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(list[idx]);
-            u.lang = 'zh-CN';
-            u.onend = () => { idx++; render(); };
-            speechSynthesis.speak(u);
+            const utterance = new SpeechSynthesisUtterance(db[currentPos]);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.9;
+            utterance.onend = () => { currentPos++; draw(); };
+            speechSynthesis.speak(utterance);
         } else {
-            idx++;
-            render();
+            currentPos++;
+            draw();
         }
     }
 
-    function exitApp() {
+    function resetSystem() {
         speechSynthesis.cancel();
         document.getElementById("setup").style.display = "flex";
         document.getElementById("quiz").style.display = "none";
