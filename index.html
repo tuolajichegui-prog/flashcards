@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smooth Paced Flashcards</title>
+    <title>Fixed Flashcards</title>
     <style>
         html, body {
             overflow-y: auto;
@@ -52,7 +52,6 @@
             border-radius: 12px;
             font-weight: bold;
             cursor: pointer;
-            user-select: none;
         }
 
         #quiz { display: none; padding: 15px; flex-direction: column; }
@@ -95,7 +94,7 @@
 <div id="app-container">
     <div id="setup">
         <h3 style="font-family: sans-serif;">Card Editor</h3>
-        <textarea id="inputText" placeholder="Paste your words here..."></textarea>
+        <textarea id="inputText" placeholder="Paste words here..."></textarea>
         <div style="margin-bottom: 15px; font-family: sans-serif; text-align: left;">
             <label style="cursor: pointer;"><input type="checkbox" id="shuffle"> Shuffle Cards</label>
         </div>
@@ -126,16 +125,28 @@
     let isSpeaking = false;
 
     window.onload = () => {
-        const saved = localStorage.getItem("smooth_delay_save");
+        const saved = localStorage.getItem("fixed_btn_save");
         if (saved) document.getElementById("inputText").value = saved;
     };
 
     function go() {
+        // FORCE RESET SPEECH ON START
+        isSpeaking = false;
+        speechSynthesis.cancel();
+
         const text = document.getElementById("inputText").value;
-        localStorage.setItem("smooth_delay_save", text);
+        localStorage.setItem("fixed_btn_save", text);
+        
         list = text.split("\n").filter(l => l.trim() !== "");
-        if (list.length === 0) return;
-        if (document.getElementById("shuffle").checked) list.sort(() => Math.random() - 0.5);
+        if (list.length === 0) {
+            alert("Please enter some words first!");
+            return;
+        }
+
+        if (document.getElementById("shuffle").checked) {
+            list.sort(() => Math.random() - 0.5);
+        }
+
         idx = 0; ok = 0; no = 0;
         document.getElementById("setup").style.display = "none";
         document.getElementById("quiz").style.display = "flex";
@@ -183,7 +194,6 @@
                 speechSynthesis.speak(msg);
             });
 
-            // THE 0.07 SEC DELAY (70ms)
             await new Promise(r => setTimeout(r, 70));
         }
         
